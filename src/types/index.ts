@@ -29,6 +29,10 @@ export interface Companion {
   name: string
   birthDate: string
   gender: 'male' | 'female'
+  visitType: 'first' | 'return' | null
+  desiredTreatment: string
+  budget: string
+  surgeryHistory: string
 }
 
 // 상담 정보

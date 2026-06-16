@@ -9,16 +9,18 @@ interface SelectDatetimePageProps {
   onNext: (date: string, time: string) => void
   onBack: () => void
   onOpenMyPage: () => void
+  initialDate?: string
+  initialTime?: string
 }
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 
-export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyPage }: SelectDatetimePageProps) {
-  const [yearMonth, setYearMonth] = useState(currentYearMonth())
+export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyPage, initialDate, initialTime }: SelectDatetimePageProps) {
+  const [yearMonth, setYearMonth] = useState(initialDate ? initialDate.slice(0, 7) : currentYearMonth())
   const [availableDates, setAvailableDates] = useState<string[]>([])
-  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string | null>(initialDate ?? null)
   const [slots, setSlots] = useState<TimeSlot[]>([])
-  const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [selectedTime, setSelectedTime] = useState<string | null>(initialTime ?? null)
   const [isLoadingDates, setIsLoadingDates] = useState(false)
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
 

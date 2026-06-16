@@ -147,6 +147,7 @@ export default function App() {
           setStep('select-datetime')
         }}
         onOpenMyPage={openMyPage}
+        initialBranchId={selectedBranch?.id ?? null}
       />
     )
   }
@@ -163,6 +164,8 @@ export default function App() {
         }}
         onBack={() => setStep('select-branch')}
         onOpenMyPage={openMyPage}
+        initialDate={selectedDate || undefined}
+        initialTime={selectedTime || undefined}
       />
     )
   }
@@ -177,6 +180,7 @@ export default function App() {
         }}
         onBack={() => setStep('select-datetime')}
         onOpenMyPage={openMyPage}
+        initialData={consultationData}
       />
     )
   }

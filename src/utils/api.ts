@@ -26,9 +26,18 @@ async function post<T>(path: string, body: Record<string, unknown>): Promise<T> 
 // ── 고객 API ──────────────────────────────────────────────────
 
 export const customerApi = {
-  getProfile: () => get('customer', {
-    lineUserId: liff.getContext()?.userId ?? '',
-  }),
+  getProfile: async () => {
+    const raw: any = await get('customer', { lineUserId: liff.getContext()?.userId ?? '' })
+    if (!raw) return null
+    return {
+      lineUserId: raw.line_user_id ?? '',
+      displayName: raw.display_name ?? '',
+      name: raw.name ?? '',
+      birthDate: raw.birth_date ?? '',
+      gender: raw.gender === '남성' ? 'male' : raw.gender === '여성' ? 'female' : undefined,
+      isProfileComplete: !!(raw.name && raw.birth_date && raw.gender),
+    }
+  },
 
   createProfile: (data: {
     displayName: string

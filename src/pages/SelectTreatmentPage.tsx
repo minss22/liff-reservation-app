@@ -6,11 +6,12 @@ import type { Branch } from '../types'
 interface SelectTreatmentPageProps {
   onNext: (branch: Branch) => void
   onOpenMyPage: () => void
+  initialBranchId?: string | null
 }
 
-export default function SelectTreatmentPage({ onNext, onOpenMyPage }: SelectTreatmentPageProps) {
+export default function SelectTreatmentPage({ onNext, onOpenMyPage, initialBranchId }: SelectTreatmentPageProps) {
   const [branches, setBranches] = useState<Branch[]>([])
-  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null)
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(initialBranchId ?? null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {

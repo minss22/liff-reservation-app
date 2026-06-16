@@ -14,9 +14,18 @@ interface ConfirmPageProps {
 }
 
 function buildCompanionInfo(companions: Companion[]): string {
-  return companions.map((c, i) =>
-    `동반자${i + 1}: ${c.name} / ${c.gender === 'male' ? '남성' : '여성'} / ${c.birthDate}`
-  ).join('\n')
+  return companions.map((c, i) => {
+    const parts = [
+      `동반자${i + 1}: ${c.name}`,
+      c.gender === 'male' ? '남성' : '여성',
+      c.birthDate,
+      c.visitType === 'first' ? '초진' : '재진',
+      c.desiredTreatment,
+      ...(c.budget ? [c.budget] : []),
+      ...(c.surgeryHistory ? [c.surgeryHistory] : []),
+    ]
+    return parts.join(' / ')
+  }).join('\n')
 }
 
 export default function ConfirmPage({ branch, date, time, consultation, onConfirmed, onBack }: ConfirmPageProps) {
@@ -76,13 +85,21 @@ export default function ConfirmPage({ branch, date, time, consultation, onConfir
             <div style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>同伴者情報</div>
             {consultation.companions.map((c, i) => (
               <div key={i} style={{
-                fontSize: 13,
-                color: '#111',
-                fontWeight: 500,
-                padding: '6px 0',
+                padding: '10px 0',
                 borderBottom: i < consultation.companions.length - 1 ? '1px solid #EEE' : 'none',
+                display: 'flex', flexDirection: 'column', gap: 3,
               }}>
-                {i + 1}. {c.name}　{c.gender === 'male' ? '男性' : '女性'}　{c.birthDate.replace(/-/g, '/')}
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>
+                  {i + 1}. {c.name}　{c.gender === 'male' ? '男性' : '女性'}　{c.birthDate.replace(/-/g, '/')}
+                </div>
+                <div style={{ fontSize: 12, color: '#555' }}>
+                  {c.visitType === 'first' ? '初診' : '再診'}　{c.desiredTreatment}
+                </div>
+                {(c.budget || c.surgeryHistory) && (
+                  <div style={{ fontSize: 12, color: '#888' }}>
+                    {c.budget && `予算: ${c.budget}`}{c.budget && c.surgeryHistory && '　'}{c.surgeryHistory && `履歴: ${c.surgeryHistory}`}
+                  </div>
+                )}
               </div>
             ))}
           </div>
