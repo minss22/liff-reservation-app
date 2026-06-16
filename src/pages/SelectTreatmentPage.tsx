@@ -5,10 +5,10 @@ import type { Branch } from '../types'
 
 interface SelectTreatmentPageProps {
   onNext: (branch: Branch) => void
-  onBack: () => void
+  onOpenMyPage: () => void
 }
 
-export default function SelectTreatmentPage({ onNext, onBack }: SelectTreatmentPageProps) {
+export default function SelectTreatmentPage({ onNext, onOpenMyPage }: SelectTreatmentPageProps) {
   const [branches, setBranches] = useState<Branch[]>([])
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -24,10 +24,10 @@ export default function SelectTreatmentPage({ onNext, onBack }: SelectTreatmentP
 
   return (
     <div style={{ minHeight: '100dvh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <TopBar title="店舗の選択" onBack={onBack} />
+      <TopBar title="店舗の選択" rightAction={<MyPageButton onClick={onOpenMyPage} />} />
 
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <StepIndicator total={4} current={2} />
+        <StepIndicator total={3} current={1} />
 
         <section>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: '0 0 12px' }}>

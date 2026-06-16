@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TopBar, StepIndicator, Input, Button, InfoBox } from '../components/ui'
+import { TopBar, Input, Button, InfoBox } from '../components/ui'
 
 const ROMAJI_REGEX = /^[A-Za-z\s\-'.]+$/
 
@@ -7,10 +7,12 @@ interface ProfilePageProps {
   initialName?: string
   initialBirthDate?: string
   initialGender?: 'male' | 'female' | null
+  isEditMode?: boolean
+  onBack?: () => void
   onComplete: (profile: { name: string; birthDate: string; gender: 'male' | 'female' }) => Promise<void>
 }
 
-export default function ProfilePage({ initialName = '', initialBirthDate = '', initialGender = null, onComplete }: ProfilePageProps) {
+export default function ProfilePage({ initialName = '', initialBirthDate = '', initialGender = null, isEditMode = false, onBack, onComplete }: ProfilePageProps) {
   const [name, setName] = useState(initialName)
   const [birthDate, setBirthDate] = useState(initialBirthDate)
   const [gender, setGender] = useState<'male' | 'female' | null>(initialGender)
@@ -46,13 +48,14 @@ export default function ProfilePage({ initialName = '', initialBirthDate = '', i
 
   return (
     <div style={{ minHeight: '100dvh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <TopBar title="基本情報の入力" />
+      <TopBar title={isEditMode ? 'プロフィールの編集' : '基本情報の入力'} onBack={isEditMode ? onBack : undefined} />
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <StepIndicator total={4} current={1} />
-        <InfoBox type="info">
-          初めてのご利用ですね！予約に必要な基本情報をご入力ください。<br />
-          次回からは入力不要です。
-        </InfoBox>
+        {!isEditMode && (
+          <InfoBox type="info">
+            初めてのご利用ですね！予約に必要な基本情報をご入力ください。<br />
+            次回からは入力不要です。
+          </InfoBox>
+        )}
 
         <Input
           label="お名前（ローマ字）"
@@ -101,7 +104,7 @@ export default function ProfilePage({ initialName = '', initialBirthDate = '', i
 
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '16px 20px 32px', background: '#fff', borderTop: '1px solid #F0F0F0' }}>
         <Button fullWidth onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? '保存中...' : '次へ'}
+          {isSubmitting ? '保存中...' : isEditMode ? '保存する' : '次へ'}
         </Button>
       </div>
     </div>

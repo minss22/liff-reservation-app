@@ -33,8 +33,9 @@ export function StepIndicator({ total, current }: StepIndicatorProps) {
 interface TopBarProps {
   title: string
   onBack?: () => void
+  rightAction?: React.ReactNode
 }
-export function TopBar({ title, onBack }: TopBarProps) {
+export function TopBar({ title, onBack, rightAction }: TopBarProps) {
   return (
     <div style={{
       display: 'flex',
@@ -46,24 +47,29 @@ export function TopBar({ title, onBack }: TopBarProps) {
       top: 0,
       zIndex: 10,
     }}>
-      {onBack && (
-        <button
-          onClick={onBack}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '4px 8px 4px 0',
-            cursor: 'pointer',
-            fontSize: 20,
-            color: '#333',
-            lineHeight: 1,
-          }}
-          aria-label="뒤로가기"
-        >
-          ←
-        </button>
-      )}
-      <span style={{ fontWeight: 600, fontSize: 16, color: '#111' }}>{title}</span>
+      <div style={{ width: 40, flexShrink: 0 }}>
+        {onBack && (
+          <button
+            onClick={onBack}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '4px 8px 4px 0',
+              cursor: 'pointer',
+              fontSize: 20,
+              color: '#333',
+              lineHeight: 1,
+            }}
+            aria-label="뒤로가기"
+          >
+            ←
+          </button>
+        )}
+      </div>
+      <span style={{ flex: 1, textAlign: 'center', fontWeight: 600, fontSize: 16, color: '#111' }}>{title}</span>
+      <div style={{ width: 40, flexShrink: 0, display: 'flex', justifyContent: 'flex-end' }}>
+        {rightAction}
+      </div>
     </div>
   )
 }
