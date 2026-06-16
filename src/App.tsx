@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useLiff } from './hooks/useLiff'
-import { customerApi, branchApi } from './utils/api'
+import { customerApi } from './utils/api'
 
 import LoginPage from './pages/LoginPage'
 import ProfilePage from './pages/ProfilePage'
+import MyPage from './pages/MyPage'
 import SelectTreatmentPage from './pages/SelectTreatmentPage'
 import SelectDatetimePage from './pages/SelectDatetimePage'
 import ConsultationPage from './pages/ConsultationPage'
@@ -14,16 +15,22 @@ import { LoadingSpinner } from './components/ui'
 import type { ReservationStep, Branch, ConsultationData, Reservation, UserProfile } from './types'
 
 export default function App() {
-  const { isReady, isLoggedIn, error, lineUserId: _lineUserId, displayName, login } = useLiff()
+  const { isReady, isLoggedIn, error, displayName, pictureUrl, login } = useLiff()
 
   const [step, setStep] = useState<ReservationStep>('login')
   const [isCheckingProfile, setIsCheckingProfile] = useState(false)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+
+  // 예약 플로우 상태
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedTime, setSelectedTime] = useState<string>('')
   const [consultationData, setConsultationData] = useState<ConsultationData | null>(null)
   const [completedReservation, setCompletedReservation] = useState<Reservation | null>(null)
+
+  // 마이페이지 표시 여부 + 프로필 편집 여부
+  const [showMyPage, setShowMyPage] = useState(false)
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
 
   useEffect(() => {
     if (!isReady || !isLoggedIn) return
@@ -32,9 +39,9 @@ export default function App() {
       .then((profile: any) => {
         if (profile) {
           setUserProfile(profile)
-          setStep('select-branch')
+          setStep('select-branch')   // 프로필 있으면 바로 지점 선택
         } else {
-          setStep('profile')
+          setStep('profile')         // 첫 방문: 기본 정보 입력
         }
       })
       .catch(() => setStep('profile'))
@@ -63,7 +70,46 @@ export default function App() {
     return <LoginPage onLogin={() => login()} isLoading={false} />
   }
 
-  // ── 기본 정보 입력 ────────────────────────────────────────────
+  // ── 마이페이지 (프로필 편집 모드) ─────────────────────────────
+  if (showMyPage && isEditingProfile) {
+    return (
+      <ProfilePage
+        isEditMode
+        initialName={userProfile?.name ?? ''}
+        initialBirthDate={userProfile?.birthDate ?? ''}
+        initialGender={userProfile?.gender ?? null}
+        onBack={() => setIsEditingProfile(false)}
+        onComplete={async ({ name, birthDate, gender }) => {
+          await customerApi.createProfile({
+            displayName: displayName ?? '',
+            name,
+            birthDate,
+            gender: gender === 'male' ? '남성' : '여성',
+          })
+          setUserProfile(prev => prev
+            ? { ...prev, name, birthDate, gender, isProfileComplete: true }
+            : null
+          )
+          setIsEditingProfile(false)
+        }}
+      />
+    )
+  }
+
+  // ── 마이페이지 (프로필 조회) ──────────────────────────────────
+  if (showMyPage) {
+    return (
+      <MyPage
+        userProfile={userProfile}
+        displayName={displayName}
+        pictureUrl={pictureUrl}
+        onClose={() => setShowMyPage(false)}
+        onEdit={() => setIsEditingProfile(true)}
+      />
+    )
+  }
+
+  // ── 기본 정보 입력 (첫 방문) ──────────────────────────────────
   if (step === 'profile') {
     return (
       <ProfilePage
@@ -77,13 +123,22 @@ export default function App() {
             birthDate,
             gender: gender === 'male' ? '남성' : '여성',
           })
+          setUserProfile(prev => prev
+            ? { ...prev, name, birthDate, gender, isProfileComplete: true }
+            : null
+          )
           setStep('select-branch')
         }}
       />
     )
   }
 
-  // ── 지점 선택 ─────────────────────────────────────────────────
+  const openMyPage = () => {
+    setIsEditingProfile(false)
+    setShowMyPage(true)
+  }
+
+  // ── 지점 선택 (1/3) ───────────────────────────────────────────
   if (step === 'select-branch') {
     return (
       <SelectTreatmentPage
@@ -91,12 +146,12 @@ export default function App() {
           setSelectedBranch(branch)
           setStep('select-datetime')
         }}
-        onBack={() => setStep('profile')}
+        onOpenMyPage={openMyPage}
       />
     )
   }
 
-  // ── 날짜·시간 선택 ────────────────────────────────────────────
+  // ── 날짜·시간 선택 (2/3) ─────────────────────────────────────
   if (step === 'select-datetime' && selectedBranch) {
     return (
       <SelectDatetimePage
@@ -107,11 +162,12 @@ export default function App() {
           setStep('consultation')
         }}
         onBack={() => setStep('select-branch')}
+        onOpenMyPage={openMyPage}
       />
     )
   }
 
-  // ── 상담 정보 입력 ────────────────────────────────────────────
+  // ── 상담 정보 입력 (3/3) ─────────────────────────────────────
   if (step === 'consultation') {
     return (
       <ConsultationPage
@@ -120,6 +176,7 @@ export default function App() {
           setStep('confirm')
         }}
         onBack={() => setStep('select-datetime')}
+        onOpenMyPage={openMyPage}
       />
     )
   }

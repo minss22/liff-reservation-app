@@ -5,6 +5,7 @@ import type { Companion, ConsultationData } from '../types'
 interface ConsultationPageProps {
   onNext: (data: ConsultationData) => void
   onBack: () => void
+  onOpenMyPage: () => void
 }
 
 const ROMAJI_REGEX = /^[A-Za-z\s\-'.]+$/
@@ -91,7 +92,7 @@ function CompanionForm({ companion, index, nameError, birthError, onChange, onRe
   )
 }
 
-export default function ConsultationPage({ onNext, onBack }: ConsultationPageProps) {
+export default function ConsultationPage({ onNext, onBack, onOpenMyPage }: ConsultationPageProps) {
   const [visitType, setVisitType] = useState<'first' | 'return' | null>(null)
   const [desiredTreatment, setDesiredTreatment] = useState('')
   const [budget, setBudget] = useState('')
@@ -158,10 +159,14 @@ export default function ConsultationPage({ onNext, onBack }: ConsultationPagePro
 
   return (
     <div style={{ minHeight: '100dvh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <TopBar title="カウンセリング情報" onBack={onBack} />
+      <TopBar title="カウンセリング情報" onBack={onBack} rightAction={
+        <button onClick={onOpenMyPage} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, padding: '2px 4px', color: '#555' }}>
+          👤
+        </button>
+      } />
 
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <StepIndicator total={4} current={4} />
+        <StepIndicator total={3} current={3} />
 
         {/* 초진/재진 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

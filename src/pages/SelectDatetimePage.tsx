@@ -8,11 +8,12 @@ interface SelectDatetimePageProps {
   branchId: string
   onNext: (date: string, time: string) => void
   onBack: () => void
+  onOpenMyPage: () => void
 }
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 
-export default function SelectDatetimePage({ branchId, onNext, onBack }: SelectDatetimePageProps) {
+export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyPage }: SelectDatetimePageProps) {
   const [yearMonth, setYearMonth] = useState(currentYearMonth())
   const [availableDates, setAvailableDates] = useState<string[]>([])
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -58,10 +59,14 @@ export default function SelectDatetimePage({ branchId, onNext, onBack }: SelectD
 
   return (
     <div style={{ minHeight: '100dvh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <TopBar title="日時の選択" onBack={onBack} />
+      <TopBar title="日時の選択" onBack={onBack} rightAction={
+        <button onClick={onOpenMyPage} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, padding: '2px 4px', color: '#555' }}>
+          👤
+        </button>
+      } />
 
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <StepIndicator total={4} current={3} />
+        <StepIndicator total={3} current={2} />
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button

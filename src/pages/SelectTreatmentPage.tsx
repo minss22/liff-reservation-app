@@ -24,7 +24,11 @@ export default function SelectTreatmentPage({ onNext, onOpenMyPage }: SelectTrea
 
   return (
     <div style={{ minHeight: '100dvh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <TopBar title="店舗の選択" rightAction={<MyPageButton onClick={onOpenMyPage} />} />
+      <TopBar title="店舗の選択" rightAction={
+        <button onClick={onOpenMyPage} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, padding: '2px 4px', color: '#555' }}>
+          👤
+        </button>
+      } />
 
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         <StepIndicator total={3} current={1} />
