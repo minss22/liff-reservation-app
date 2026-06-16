@@ -6,11 +6,11 @@ async function get<T>(path: string, params: Record<string, string> = {}): Promis
   const query = new URLSearchParams({ path, ...params }).toString()
   const res = await fetch(`${BASE_URL}?${query}`)
   const json = await res.json()
-  if (json.status !== 200) throw new Error(json.data?.error || 'リクエスト失敗')
+  if (json.status !== 200) throw new Error(json.data?.error || '요청 실패')
   return json.data as T
 }
 
-async function post<T>(path: string, body: Record<string, unknown>): Promise<T> {
+async function post<T>(path: string, body: Record<string, any>): Promise<T> {
   const lineUserId = liff.getContext()?.userId ?? ''
   const res = await fetch(`${BASE_URL}?path=${path}`, {
     method: 'POST',
@@ -19,66 +19,25 @@ async function post<T>(path: string, body: Record<string, unknown>): Promise<T> 
     redirect: 'follow',
   })
   const json = await res.json()
-  if (json.status !== 200) throw new Error(json.data?.error || 'リクエスト失敗')
+  if (json.status !== 200) throw new Error(json.data?.error || '요청 실패')
   return json.data as T
 }
 
-// ── 고객 API ──────────────────────────────────────────────────
-
 export const customerApi = {
-  getProfile: async () => {
-    const raw: any = await get('customer', { lineUserId: liff.getContext()?.userId ?? '' })
-    if (!raw) return null
-    return {
-      lineUserId: raw.line_user_id ?? '',
-      displayName: raw.display_name ?? '',
-      name: raw.name ?? '',
-      birthDate: raw.birth_date ?? '',
-      gender: raw.gender === '남성' ? 'male' : raw.gender === '여성' ? 'female' : undefined,
-      isProfileComplete: !!(raw.name && raw.birth_date && raw.gender),
-    }
-  },
-
-  createProfile: (data: {
-    displayName: string
-    name: string
-    birthDate: string
-    gender: string
-  }) => post('customer', data),
+  getProfile: () => get('customer', { lineUserId: liff.getContext()?.userId ?? '' }),
+  createProfile: (data: { name: string; birthDate: string; gender: string }) =>
+    post('customer', { ...data }),
 }
-
-// ── 지점 API ──────────────────────────────────────────────────
 
 export const branchApi = {
   getBranches: () => get('branches'),
   getBranch: (id: string) => get('branch', { id }),
 }
 
-// ── 예약 API ──────────────────────────────────────────────────
-
 export const reservationApi = {
   getAvailableDates: (branchId: string, month: string) =>
     get('available-dates', { branchId, month }),
-
   getAvailableSlots: (branchId: string, date: string) =>
     get('available-slots', { branchId, date }),
-
-  createReservation: (data: {
-    branchId: string
-    date: string
-    time: string
-    visitType: string
-    desiredTreatment: string
-    budget?: string
-    surgeryHistory?: string
-    hasCompanion: boolean
-    companionInfo?: string
-  }) => post('reservation', data as unknown as Record<string, unknown>),
-
-  getMyReservations: () => get('reservations', {
-    lineUserId: liff.getContext()?.userId ?? '',
-  }),
-
-  cancelReservation: (reservationId: string) =>
-    post('cancel', { reservationId }),
+  createReservation: (data: Record<string, any>) => post('reservation', data),
 }

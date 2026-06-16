@@ -26,9 +26,7 @@ export function useLiff(): UseLiffReturn {
       try {
         const liffId = (import.meta as any).env.VITE_LIFF_ID
         if (!liffId) throw new Error('VITE_LIFF_ID가 설정되지 않았습니다.')
-
         await liff.init({ liffId })
-
         if (liff.isLoggedIn()) {
           setIsLoggedIn(true)
           const profile = await liff.getProfile()
@@ -36,21 +34,16 @@ export function useLiff(): UseLiffReturn {
           setDisplayName(profile.displayName)
           setPictureUrl(profile.pictureUrl ?? null)
         }
-
         setIsReady(true)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'LIFF 초기화 실패')
         setIsReady(true)
       }
     }
-
     initLiff()
   }, [])
 
-  const login = () => {
-    liff.login({ redirectUri: window.location.href })
-  }
-
+  const login = () => liff.login({ redirectUri: window.location.href })
   const logout = () => {
     liff.logout()
     setIsLoggedIn(false)
@@ -60,14 +53,9 @@ export function useLiff(): UseLiffReturn {
   }
 
   return {
-    isReady,
-    isLoggedIn,
+    isReady, isLoggedIn,
     isInClient: liff.isInClient(),
-    error,
-    lineUserId,
-    displayName,
-    pictureUrl,
-    login,
-    logout,
+    error, lineUserId, displayName, pictureUrl,
+    login, logout,
   }
 }
