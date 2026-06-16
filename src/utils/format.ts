@@ -21,18 +21,18 @@ export function formatDuration(min: number): string {
   return m > 0 ? `약 ${h}시간 ${m}분` : `약 ${h}시간`
 }
 
-// 예약 상태 한국어 변환
+// 예약 상태 일본어 변환
 export function formatStatus(
   status: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'completed'
 ): string {
-  const map = {
-    pending: '검토 중',
-    confirmed: '예약 확정',
-    rejected: '거절됨',
-    cancelled: '취소됨',
-    completed: '방문 완료',
+  const map: Record<string, string> = {
+    pending: '確認中',
+    confirmed: '予約確定',
+    rejected: 'お断り',
+    cancelled: 'キャンセル',
+    completed: '来院完了',
   }
-  return map[status]
+  return map[status] ?? status
 }
 
 // 월 이동 ("2026-07" → "2026-08")

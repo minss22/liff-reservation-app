@@ -1,36 +1,38 @@
 import { useState, useEffect } from 'react'
 import { useLiff } from './hooks/useLiff'
-import { customerApi, branchApi, treatmentApi, reservationApi } from './utils/api'
+import { customerApi, branchApi } from './utils/api'
 
 import LoginPage from './pages/LoginPage'
 import ProfilePage from './pages/ProfilePage'
 import SelectTreatmentPage from './pages/SelectTreatmentPage'
 import SelectDatetimePage from './pages/SelectDatetimePage'
+import ConsultationPage from './pages/ConsultationPage'
 import ConfirmPage from './pages/ConfirmPage'
 import CompletePage from './pages/CompletePage'
 import { LoadingSpinner } from './components/ui'
 
-import type { ReservationStep, UserProfile, Branch, Treatment, Reservation } from './types'
+import type { ReservationStep, Branch, ConsultationData, Reservation, UserProfile } from './types'
 
 export default function App() {
-  const { isReady, isLoggedIn, error, lineUserId, displayName, pictureUrl, login } = useLiff()
+  const { isReady, isLoggedIn, error, lineUserId: _lineUserId, displayName, login } = useLiff()
 
   const [step, setStep] = useState<ReservationStep>('login')
   const [isCheckingProfile, setIsCheckingProfile] = useState(false)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null)
-  const [selectedTreatment, setSelectedTreatment] = useState<Treatment | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedTime, setSelectedTime] = useState<string>('')
+  const [consultationData, setConsultationData] = useState<ConsultationData | null>(null)
   const [completedReservation, setCompletedReservation] = useState<Reservation | null>(null)
 
-  // 로그인 완료 시 프로필 확인
   useEffect(() => {
     if (!isReady || !isLoggedIn) return
     setIsCheckingProfile(true)
     customerApi.getProfile()
       .then((profile: any) => {
         if (profile) {
-          setStep('select-branch-treatment')
+          setUserProfile(profile)
+          setStep('select-branch')
         } else {
           setStep('profile')
         }
@@ -42,7 +44,7 @@ export default function App() {
   if (!isReady || isCheckingProfile) {
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
-        <LoadingSpinner message="앱을 불러오는 중..." />
+        <LoadingSpinner message="読み込み中..." />
       </div>
     )
   }
@@ -56,101 +58,92 @@ export default function App() {
     )
   }
 
-  // ── 로그인 ───────────────────────────────────────────────────
+  // ── 로그인 ────────────────────────────────────────────────────
   if (!isLoggedIn || step === 'login') {
-    return (
-      <LoginPage
-        onLogin={() => login()}
-        isLoading={false}
-      />
-    )
+    return <LoginPage onLogin={() => login()} isLoading={false} />
   }
 
-  // ── 기본 정보 입력 ───────────────────────────────────────────
+  // ── 기본 정보 입력 ────────────────────────────────────────────
   if (step === 'profile') {
     return (
       <ProfilePage
-        displayName={displayName ?? ''}
-        onComplete={async (profileData) => {
+        initialName={userProfile?.name ?? ''}
+        initialBirthDate={userProfile?.birthDate ?? ''}
+        initialGender={userProfile?.gender ?? null}
+        onComplete={async ({ name, birthDate, gender }) => {
           await customerApi.createProfile({
-            name: profileData.name!,
-            birthDate: profileData.birthDate!,
-            phone: profileData.phone!,
-            notes: profileData.notes,
+            displayName: displayName ?? '',
+            name,
+            birthDate,
+            gender: gender === 'male' ? '남성' : '여성',
           })
-          setStep('select-branch-treatment')
+          setStep('select-branch')
         }}
       />
     )
   }
 
-  // ── 지점·시술 선택 ──────────────────────────────────────────
-  if (step === 'select-branch-treatment') {
+  // ── 지점 선택 ─────────────────────────────────────────────────
+  if (step === 'select-branch') {
     return (
       <SelectTreatmentPage
-        onNext={async (branchId, treatmentId) => {
-          const [branchRes, treatmentsRes]: any = await Promise.all([
-            branchApi.getBranch(branchId),
-            treatmentApi.getTreatments(branchId),
-          ])
-          setSelectedBranch(branchRes)
-          setSelectedTreatment((treatmentsRes as Treatment[]).find((t) => t.id === treatmentId) ?? null)
+        onNext={(branch) => {
+          setSelectedBranch(branch)
           setStep('select-datetime')
         }}
-        onBack={() => setStep('login')}
+        onBack={() => setStep('profile')}
       />
     )
   }
 
-  // ── 날짜·시간 선택 ──────────────────────────────────────────
-  if (step === 'select-datetime' && selectedBranch && selectedTreatment) {
+  // ── 날짜·시간 선택 ────────────────────────────────────────────
+  if (step === 'select-datetime' && selectedBranch) {
     return (
       <SelectDatetimePage
         branchId={selectedBranch.id}
-        treatmentId={selectedTreatment.id}
         onNext={(date, time) => {
           setSelectedDate(date)
           setSelectedTime(time)
-          setStep('confirm')
+          setStep('consultation')
         }}
-        onBack={() => setStep('select-branch-treatment')}
+        onBack={() => setStep('select-branch')}
       />
     )
   }
 
-  // ── 예약 확인·제출 ──────────────────────────────────────────
-  if (step === 'confirm' && selectedBranch && selectedTreatment) {
+  // ── 상담 정보 입력 ────────────────────────────────────────────
+  if (step === 'consultation') {
     return (
-      <ConfirmPage
-        branch={selectedBranch}
-        treatment={selectedTreatment}
-        date={selectedDate}
-        time={selectedTime}
-        onConfirmed={(reservation) => {
-          setCompletedReservation(reservation)
-          setStep('complete')
+      <ConsultationPage
+        onNext={(data) => {
+          setConsultationData(data)
+          setStep('confirm')
         }}
         onBack={() => setStep('select-datetime')}
       />
     )
   }
 
-  // ── 접수 완료 ────────────────────────────────────────────────
-  if (step === 'complete' && completedReservation) {
+  // ── 예약 확인·제출 ────────────────────────────────────────────
+  if (step === 'confirm' && selectedBranch && consultationData) {
     return (
-      <CompletePage
-        reservation={completedReservation}
-        onViewHistory={() => setStep('select-branch-treatment')}
-        onGoHome={() => {
-          setSelectedBranch(null)
-          setSelectedTreatment(null)
-          setSelectedDate('')
-          setSelectedTime('')
-          setCompletedReservation(null)
-          setStep('select-branch-treatment')
+      <ConfirmPage
+        branch={selectedBranch}
+        date={selectedDate}
+        time={selectedTime}
+        consultation={consultationData}
+        onConfirmed={(reservation) => {
+          setCompletedReservation(reservation)
+          setStep('complete')
         }}
+        onBack={() => setStep('consultation')}
       />
     )
+  }
+
+  // ── 접수 완료 ─────────────────────────────────────────────────
+  if (step === 'complete' && completedReservation) {
+    return <CompletePage reservation={completedReservation} />
   }
 
   return (

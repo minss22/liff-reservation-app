@@ -1,21 +1,25 @@
 import { useState } from 'react'
-import { TopBar, StepIndicator, Button, SummaryCard, InfoBox } from '../components/ui'
+import { TopBar, Button, SummaryCard, InfoBox } from '../components/ui'
 import { reservationApi } from '../utils/api'
-import { formatPrice, formatDate, formatDuration } from '../utils/format'
-import type { Branch, Treatment, Reservation } from '../types'
+import { formatDate } from '../utils/format'
+import type { Branch, ConsultationData, Reservation, Companion } from '../types'
 
 interface ConfirmPageProps {
   branch: Branch
-  treatment: Treatment
   date: string
   time: string
+  consultation: ConsultationData
   onConfirmed: (reservation: Reservation) => void
   onBack: () => void
-  isMock?: boolean
 }
 
-export default function ConfirmPage({ branch, treatment, date, time, onConfirmed, onBack }: ConfirmPageProps) {
-  const [memo, setMemo] = useState('')
+function buildCompanionInfo(companions: Companion[]): string {
+  return companions.map((c, i) =>
+    `동반자${i + 1}: ${c.name} / ${c.gender === 'male' ? '남성' : '여성'} / ${c.birthDate}`
+  ).join('\n')
+}
+
+export default function ConfirmPage({ branch, date, time, consultation, onConfirmed, onBack }: ConfirmPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,66 +29,101 @@ export default function ConfirmPage({ branch, treatment, date, time, onConfirmed
     try {
       const res: any = await reservationApi.createReservation({
         branchId: branch.id,
-        treatmentId: treatment.id,
         date,
         time,
-        memo: memo.trim() || undefined,
+        visitType: consultation.visitType === 'first' ? '초진' : '재진',
+        desiredTreatment: consultation.desiredTreatment,
+        budget: consultation.budget || undefined,
+        surgeryHistory: consultation.surgeryHistory || undefined,
+        hasCompanion: consultation.hasCompanion,
+        companionInfo: consultation.hasCompanion && consultation.companions.length > 0
+          ? buildCompanionInfo(consultation.companions)
+          : undefined,
       })
       onConfirmed(res)
     } catch (e: any) {
-      setError(e.message || '예약 신청 중 오류가 발생했습니다. 다시 시도해주세요.')
+      setError(e.message || '予約申し込み中にエラーが発生しました。もう一度お試しください。')
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const summaryRows = [
-    { label: '지점', value: branch.name },
-    { label: '주소', value: branch.address },
-    { label: '시술', value: treatment.name },
-    { label: '일시', value: `${formatDate(date)} ${time}` },
-    { label: '소요시간', value: formatDuration(treatment.durationMin) },
-    { label: '금액', value: formatPrice(treatment.price) },
+    { label: '店舗', value: branch.name },
+    { label: '住所', value: branch.address },
+    { label: '日時', value: `${formatDate(date)} ${time}` },
+    { label: '初診・再診', value: consultation.visitType === 'first' ? '初診' : '再診' },
+    { label: 'ご希望の施術', value: consultation.desiredTreatment },
+    ...(consultation.budget ? [{ label: '予算', value: consultation.budget }] : []),
+    ...(consultation.surgeryHistory ? [{ label: '施術履歴', value: consultation.surgeryHistory }] : []),
+    {
+      label: '同伴者',
+      value: consultation.hasCompanion
+        ? `あり（${consultation.companions.length}名）`
+        : 'なし',
+    },
   ]
 
   return (
     <div style={{ minHeight: '100dvh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <TopBar title="예약 확인" onBack={onBack} />
+      <TopBar title="予約内容の確認" onBack={onBack} />
+
       <div style={{ flex: 1, padding: '20px 20px 140px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <StepIndicator total={4} current={4} />
         <SummaryCard rows={summaryRows} />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={{ fontSize: 13, fontWeight: 500, color: '#555' }}>
-            요청사항 <span style={{ color: '#999', fontWeight: 400 }}>(선택)</span>
-          </label>
-          <textarea
-            value={memo}
-            onChange={e => setMemo(e.target.value)}
-            placeholder="시술 관련 요청사항이 있으면 입력해주세요"
-            rows={3}
-            style={{
-              padding: '11px 14px', borderRadius: 10, border: '1.5px solid #E0E0E0',
-              fontSize: 14, color: '#111', background: '#FAFAFA',
-              resize: 'none', outline: 'none', fontFamily: 'inherit',
-            }}
-          />
-        </div>
+
+        {consultation.hasCompanion && consultation.companions.length > 0 && (
+          <div style={{ background: '#F8F8F8', borderRadius: 12, padding: '12px 14px' }}>
+            <div style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>同伴者情報</div>
+            {consultation.companions.map((c, i) => (
+              <div key={i} style={{
+                fontSize: 13,
+                color: '#111',
+                fontWeight: 500,
+                padding: '6px 0',
+                borderBottom: i < consultation.companions.length - 1 ? '1px solid #EEE' : 'none',
+              }}>
+                {i + 1}. {c.name}　{c.gender === 'male' ? '男性' : '女性'}　{c.birthDate.replace(/-/g, '/')}
+              </div>
+            ))}
+          </div>
+        )}
+
         <InfoBox type="warning">
-          병원에서 예약 내용을 확인한 후 최종 확정됩니다.<br />
-          결과는 LINE 메시지로 알려드립니다.
+          クリニックが内容を確認後、予約を確定いたします。<br />
+          結果はLINEメッセージでお知らせします。
         </InfoBox>
+
         {error && (
-          <div style={{ padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, color: '#DC2626', fontSize: 13 }}>
+          <div style={{
+            padding: '12px 16px',
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            borderRadius: 10,
+            color: '#DC2626',
+            fontSize: 13,
+          }}>
             {error}
           </div>
         )}
       </div>
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '16px 20px 32px', background: '#fff', borderTop: '1px solid #F0F0F0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: '16px 20px 32px',
+        background: '#fff',
+        borderTop: '1px solid #F0F0F0',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+      }}>
         <Button fullWidth onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? '신청 중...' : '예약 신청하기'}
+          {isSubmitting ? '申し込み中...' : '予約を申し込む'}
         </Button>
         <Button fullWidth variant="ghost" onClick={onBack} disabled={isSubmitting}>
-          이전으로
+          戻る
         </Button>
       </div>
     </div>

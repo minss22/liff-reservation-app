@@ -5,8 +5,7 @@ export interface UserProfile {
   pictureUrl?: string
   name?: string
   birthDate?: string
-  phone?: string
-  notes?: string
+  gender?: 'male' | 'female'
   isProfileComplete: boolean
 }
 
@@ -19,48 +18,50 @@ export interface Branch {
   operatingHours: string
 }
 
-// 시술 카테고리
-export interface TreatmentCategory {
-  id: string
-  name: string
-}
-
-// 시술 항목
-export interface Treatment {
-  id: string
-  branchId: string
-  categoryId: string
-  name: string
-  price: number
-  durationMin: number
-  description: string
-  isAvailable: boolean
-}
-
 // 예약 가능 슬롯
 export interface TimeSlot {
   time: string       // "10:00"
   available: boolean
 }
 
+// 동반자 정보
+export interface Companion {
+  name: string
+  birthDate: string
+  gender: 'male' | 'female'
+}
+
+// 상담 정보
+export interface ConsultationData {
+  visitType: 'first' | 'return'
+  desiredTreatment: string
+  budget: string
+  surgeryHistory: string
+  hasCompanion: boolean
+  companions: Companion[]
+}
+
 // 예약 신청 데이터
 export interface ReservationRequest {
   branchId: string
-  treatmentId: string
-  date: string       // "2026-07-15"
-  time: string       // "14:00"
-  memo?: string
+  date: string
+  time: string
+  visitType: string
+  desiredTreatment: string
+  budget?: string
+  surgeryHistory?: string
+  hasCompanion: boolean
+  companionInfo?: string
 }
 
 // 예약 결과
 export interface Reservation {
   id: string
   branchName: string
-  treatmentName: string
-  price: number
-  durationMin: number
   date: string
   time: string
+  visitType: string
+  desiredTreatment: string
   status: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'completed'
   createdAt: string
 }
@@ -69,7 +70,8 @@ export interface Reservation {
 export type ReservationStep =
   | 'login'
   | 'profile'
-  | 'select-branch-treatment'
+  | 'select-branch'
   | 'select-datetime'
+  | 'consultation'
   | 'confirm'
   | 'complete'

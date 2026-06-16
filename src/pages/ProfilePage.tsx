@@ -1,38 +1,37 @@
 import { useState } from 'react'
-import { TopBar, StepIndicator, Input, Textarea, Button, InfoBox } from '../components/ui'
-import type { UserProfile } from '../types'
+import { TopBar, StepIndicator, Input, Button, InfoBox } from '../components/ui'
+
+const ROMAJI_REGEX = /^[A-Za-z\s\-'.]+$/
 
 interface ProfilePageProps {
-  displayName: string
-  onComplete: (profile: Omit<UserProfile, 'lineUserId' | 'isProfileComplete'>) => Promise<void>
+  initialName?: string
+  initialBirthDate?: string
+  initialGender?: 'male' | 'female' | null
+  onComplete: (profile: { name: string; birthDate: string; gender: 'male' | 'female' }) => Promise<void>
 }
 
-export default function ProfilePage({ displayName, onComplete }: ProfilePageProps) {
-  const [name, setName] = useState(displayName)
-  const [birthDate, setBirthDate] = useState('')
-  const [phone, setPhone] = useState('')
-  const [notes, setNotes] = useState('')
+export default function ProfilePage({ initialName = '', initialBirthDate = '', initialGender = null, onComplete }: ProfilePageProps) {
+  const [name, setName] = useState(initialName)
+  const [birthDate, setBirthDate] = useState(initialBirthDate)
+  const [gender, setGender] = useState<'male' | 'female' | null>(initialGender)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const validate = () => {
     const errs: Record<string, string> = {}
-    if (!name.trim()) errs.name = '이름을 입력해주세요'
-    if (!birthDate) errs.birthDate = '생년월일을 입력해주세요'
-    if (!phone.trim()) errs.phone = '연락처를 입력해주세요'
-    else if (!/^010-\d{4}-\d{4}$/.test(phone)) errs.phone = '010-0000-0000 형식으로 입력해주세요'
+    if (!name.trim()) errs.name = 'お名前を入力してください'
+    else if (!ROMAJI_REGEX.test(name.trim())) errs.name = 'ローマ字で入力してください'
+    if (!birthDate) errs.birthDate = '生年月日を入力してください'
+    if (!gender) errs.gender = '性別を選択してください'
     return errs
   }
 
   const handleSubmit = async () => {
     const errs = validate()
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs)
-      return
-    }
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setIsSubmitting(true)
     try {
-      await onComplete({ name, birthDate, phone, notes, displayName })
+      await onComplete({ name: name.trim(), birthDate, gender: gender! })
     } catch (e) {
       console.error(e)
     } finally {
@@ -40,61 +39,69 @@ export default function ProfilePage({ displayName, onComplete }: ProfilePageProp
     }
   }
 
-  const handlePhoneChange = (v: string) => {
-    const digits = v.replace(/\D/g, '').slice(0, 11)
-    const formatted =
-      digits.length <= 3 ? digits
-      : digits.length <= 7 ? `${digits.slice(0, 3)}-${digits.slice(3)}`
-      : `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
-    setPhone(formatted)
-    if (errors.phone) setErrors(e => ({ ...e, phone: '' }))
+  const handleNameChange = (v: string) => {
+    setName(v)
+    if (errors.name) setErrors(e => ({ ...e, name: '' }))
   }
 
   return (
     <div style={{ minHeight: '100dvh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <TopBar title="기본 정보 입력" />
+      <TopBar title="基本情報の入力" />
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         <StepIndicator total={4} current={1} />
         <InfoBox type="info">
-          처음 이용하시는군요! 예약에 필요한 기본 정보를 입력해주세요.<br />
-          다음 방문부터는 입력하지 않아도 됩니다.
+          初めてのご利用ですね！予約に必要な基本情報をご入力ください。<br />
+          次回からは入力不要です。
         </InfoBox>
+
         <Input
-          label="이름"
+          label="お名前（ローマ字）"
           value={name}
-          onChange={e => { setName(e.target.value); if (errors.name) setErrors(ex => ({ ...ex, name: '' })) }}
-          placeholder="실명을 입력해주세요"
+          onChange={e => handleNameChange(e.target.value)}
+          placeholder="YAMADA TARO"
           error={errors.name}
+          autoCapitalize="characters"
         />
+
         <Input
-          label="생년월일"
+          label="生年月日"
           value={birthDate}
           onChange={e => { setBirthDate(e.target.value); if (errors.birthDate) setErrors(ex => ({ ...ex, birthDate: '' })) }}
-          placeholder="YYYY-MM-DD"
           type="date"
           error={errors.birthDate}
         />
-        <Input
-          label="연락처"
-          value={phone}
-          onChange={e => handlePhoneChange(e.target.value)}
-          placeholder="010-0000-0000"
-          type="tel"
-          inputMode="numeric"
-          error={errors.phone}
-        />
-        <Textarea
-          label="알레르기 · 주의사항 (선택)"
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          placeholder="특이사항이 있으면 입력해주세요"
-          rows={3}
-          hint="시술 전 의료진에게 전달됩니다"
-        />
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <label style={{ fontSize: 13, fontWeight: 500, color: '#555' }}>性別</label>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {(['male', 'female'] as const).map(g => (
+              <button
+                key={g}
+                onClick={() => { setGender(g); if (errors.gender) setErrors(e => ({ ...e, gender: '' })) }}
+                style={{
+                  flex: 1,
+                  padding: '13px 0',
+                  borderRadius: 10,
+                  border: `1.5px solid ${gender === g ? '#1D9E75' : '#E0E0E0'}`,
+                  background: gender === g ? '#E1F5EE' : '#fff',
+                  color: gender === g ? '#085041' : '#666',
+                  fontSize: 15,
+                  fontWeight: gender === g ? 700 : 400,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {g === 'male' ? '男性' : '女性'}
+              </button>
+            ))}
+          </div>
+          {errors.gender && <span style={{ fontSize: 12, color: '#E53E3E' }}>{errors.gender}</span>}
+        </div>
       </div>
+
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '16px 20px 32px', background: '#fff', borderTop: '1px solid #F0F0F0' }}>
         <Button fullWidth onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? '저장 중...' : '다음으로'}
+          {isSubmitting ? '保存中...' : '次へ'}
         </Button>
       </div>
     </div>
