@@ -12,12 +12,20 @@ interface ProfilePageProps {
   onComplete: (profile: { name: string; birthDate: string; gender: 'male' | 'female' }) => Promise<void>
 }
 
-export default function ProfilePage({ initialName = '', initialBirthDate = '', initialGender = null, isEditMode = false, onBack, onComplete }: ProfilePageProps) {
+export default function ProfilePage({
+  initialName = '',
+  initialBirthDate = '',
+  initialGender = null,
+  isEditMode = false,
+  onBack,
+  onComplete,
+}: ProfilePageProps) {
   const [name, setName] = useState(initialName)
   const [birthDate, setBirthDate] = useState(initialBirthDate)
   const [gender, setGender] = useState<'male' | 'female' | null>(initialGender)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const validate = () => {
     const errs: Record<string, string> = {}
@@ -30,25 +38,28 @@ export default function ProfilePage({ initialName = '', initialBirthDate = '', i
 
   const handleSubmit = async () => {
     const errs = validate()
-    if (Object.keys(errs).length > 0) { setErrors(errs); return }
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      return
+    }
     setIsSubmitting(true)
+    setSubmitError(null)
     try {
-      await onComplete({ name: name.trim(), birthDate, gender: gender! })
-    } catch (e) {
-      console.error(e)
+      await onComplete({ name: name.trim(), birthDate, gender: gender as 'male' | 'female' })
+    } catch (e: any) {
+      setSubmitError(e?.message || '保存に失敗しました。もう一度お試しください。')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleNameChange = (v: string) => {
-    setName(v)
-    if (errors.name) setErrors(e => ({ ...e, name: '' }))
-  }
-
   return (
     <div style={{ minHeight: '100dvh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <TopBar title={isEditMode ? 'プロフィールの編集' : '基本情報の入力'} onBack={isEditMode ? onBack : undefined} />
+      <TopBar
+        title={isEditMode ? 'プロフィールの編集' : '基本情報の入力'}
+        onBack={isEditMode ? onBack : undefined}
+      />
+
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 20 }}>
         {!isEditMode && (
           <InfoBox type="info">
@@ -58,34 +69,47 @@ export default function ProfilePage({ initialName = '', initialBirthDate = '', i
         )}
 
         <Input
-          label="お名前（ローマ字）"
+          label="お名前（ローマ字）　*"
           value={name}
-          onChange={e => handleNameChange(e.target.value)}
+          onChange={e => {
+            setName(e.target.value)
+            if (errors.name) setErrors(ex => ({ ...ex, name: '' }))
+          }}
           placeholder="YAMADA TARO"
           error={errors.name}
           autoCapitalize="characters"
         />
 
         <Input
-          label="生年月日"
+          label="生年月日　*"
           value={birthDate}
-          onChange={e => { setBirthDate(e.target.value); if (errors.birthDate) setErrors(ex => ({ ...ex, birthDate: '' })) }}
+          onChange={e => {
+            setBirthDate(e.target.value)
+            if (errors.birthDate) setErrors(ex => ({ ...ex, birthDate: '' }))
+          }}
           type="date"
           error={errors.birthDate}
         />
 
+        {/* 성별 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <label style={{ fontSize: 13, fontWeight: 500, color: '#555' }}>性別</label>
+          <label style={{ fontSize: 13, fontWeight: 500, color: '#555' }}>
+            性別　<span style={{ color: '#E53E3E' }}>*</span>
+          </label>
           <div style={{ display: 'flex', gap: 10 }}>
             {(['male', 'female'] as const).map(g => (
               <button
                 key={g}
-                onClick={() => { setGender(g); if (errors.gender) setErrors(e => ({ ...e, gender: '' })) }}
+                type="button"
+                onClick={() => {
+                  setGender(g)
+                  if (errors.gender) setErrors(ex => ({ ...ex, gender: '' }))
+                }}
                 style={{
                   flex: 1,
                   padding: '13px 0',
                   borderRadius: 10,
-                  border: `1.5px solid ${gender === g ? '#1D9E75' : '#E0E0E0'}`,
+                  border: `2px solid ${gender === g ? '#1D9E75' : '#E0E0E0'}`,
                   background: gender === g ? '#E1F5EE' : '#fff',
                   color: gender === g ? '#085041' : '#666',
                   fontSize: 15,
@@ -98,11 +122,31 @@ export default function ProfilePage({ initialName = '', initialBirthDate = '', i
               </button>
             ))}
           </div>
-          {errors.gender && <span style={{ fontSize: 12, color: '#E53E3E' }}>{errors.gender}</span>}
+          {errors.gender && (
+            <span style={{ fontSize: 12, color: '#E53E3E' }}>{errors.gender}</span>
+          )}
         </div>
+
+        {/* API 에러 */}
+        {submitError && (
+          <div style={{
+            padding: '12px 14px',
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            borderRadius: 10,
+            color: '#DC2626',
+            fontSize: 13,
+            lineHeight: 1.5,
+          }}>
+            {submitError}
+          </div>
+        )}
       </div>
 
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '16px 20px 32px', background: '#fff', borderTop: '1px solid #F0F0F0' }}>
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        padding: '16px 20px 32px', background: '#fff', borderTop: '1px solid #F0F0F0',
+      }}>
         <Button fullWidth onClick={handleSubmit} disabled={isSubmitting}>
           {isSubmitting ? '保存中...' : isEditMode ? '保存する' : '次へ'}
         </Button>

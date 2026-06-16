@@ -15,7 +15,7 @@ import { LoadingSpinner } from './components/ui'
 import type { ReservationStep, Branch, ConsultationData, Reservation, UserProfile } from './types'
 
 export default function App() {
-  const { isReady, isLoggedIn, error, displayName, pictureUrl, login } = useLiff()
+  const { isReady, isLoggedIn, error, lineUserId, displayName, pictureUrl, login } = useLiff()
 
   const [step, setStep] = useState<ReservationStep>('login')
   const [isCheckingProfile, setIsCheckingProfile] = useState(false)
@@ -86,10 +86,15 @@ export default function App() {
             birthDate,
             gender: gender === 'male' ? '남성' : '여성',
           })
-          setUserProfile(prev => prev
-            ? { ...prev, name, birthDate, gender, isProfileComplete: true }
-            : null
-          )
+          setUserProfile(prev => ({
+            lineUserId: prev?.lineUserId ?? lineUserId ?? '',
+            displayName: prev?.displayName ?? displayName ?? '',
+            pictureUrl: prev?.pictureUrl,
+            name,
+            birthDate,
+            gender,
+            isProfileComplete: true,
+          }))
           setIsEditingProfile(false)
         }}
       />
@@ -123,10 +128,15 @@ export default function App() {
             birthDate,
             gender: gender === 'male' ? '남성' : '여성',
           })
-          setUserProfile(prev => prev
-            ? { ...prev, name, birthDate, gender, isProfileComplete: true }
-            : null
-          )
+          setUserProfile(prev => ({
+            lineUserId: prev?.lineUserId ?? lineUserId ?? '',
+            displayName: prev?.displayName ?? displayName ?? '',
+            pictureUrl: prev?.pictureUrl,
+            name,
+            birthDate,
+            gender,
+            isProfileComplete: true,
+          }))
           setStep('select-branch')
         }}
       />
