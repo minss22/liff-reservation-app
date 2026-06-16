@@ -1,6 +1,6 @@
 import liff from '@line/liff'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL
+const BASE_URL = (import.meta as any).env.VITE_API_BASE_URL
 
 async function get<T>(path: string, params: Record<string, string> = {}): Promise<T> {
   const query = new URLSearchParams({ path, ...params }).toString()

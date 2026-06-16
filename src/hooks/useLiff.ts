@@ -24,7 +24,7 @@ export function useLiff(): UseLiffReturn {
   useEffect(() => {
     const initLiff = async () => {
       try {
-        const liffId = import.meta.env.VITE_LIFF_ID
+        const liffId = (import.meta as any).env.VITE_LIFF_ID
         if (!liffId) throw new Error('VITE_LIFF_ID가 설정되지 않았습니다.')
 
         await liff.init({ liffId })

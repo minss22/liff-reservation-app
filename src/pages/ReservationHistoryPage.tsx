@@ -23,7 +23,7 @@ export default function ReservationHistoryPage({ onBack, onNewReservation }: Res
 
   useEffect(() => {
     reservationApi.getMyReservations()
-      .then(res => setReservations(res.data))
+      .then((res: any) => setReservations(res))
       .catch(console.error)
       .finally(() => setIsLoading(false))
   }, [])
