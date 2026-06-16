@@ -25,7 +25,7 @@ async function post<T>(path: string, body: Record<string, any>): Promise<T> {
 
 export const customerApi = {
   getProfile: () => get('customer', { lineUserId: liff.getContext()?.userId ?? '' }),
-  createProfile: (data: { name: string; birthDate: string; gender: string }) =>
+  createProfile: (data: { name: string; birthDate: string; gender: string; displayName?: string }) =>
     post('customer', { ...data }),
 }
 

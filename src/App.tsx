@@ -70,6 +70,7 @@ export default function App() {
             name: data.name,
             birthDate: data.birthDate,
             gender: data.gender,
+            displayName: displayName ?? '',
           })
           setStep('select-branch-datetime')
         }}
