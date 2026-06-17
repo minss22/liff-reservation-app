@@ -32,7 +32,7 @@ export default function App() {
     setIsCheckingProfile(true)
     customerApi.getProfile()
       .then((profile: any) => {
-        setStep(profile ? 'select-branch-datetime' : 'profile')
+        setStep((profile as any)?.isProfileComplete ? 'select-branch-datetime' : 'profile')
       })
       .catch(() => setStep('profile'))
       .finally(() => setIsCheckingProfile(false))
