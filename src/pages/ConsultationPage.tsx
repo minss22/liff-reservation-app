@@ -12,7 +12,7 @@ interface ConsultationPageProps {
 const ROMAJI_REGEX = /^[A-Za-z\s\-'.]+$/
 
 const emptyCompanion = (): Companion => ({
-  name: '', birthDate: '', gender: 'female',
+  name: '', birthDate: '', gender: null,
   visitType: null, desiredTreatment: '', budget: '', surgeryHistory: '',
 })
 
@@ -69,7 +69,9 @@ function CompanionForm({ companion, index, errors, onChange, onRemove }: Compani
 
       {/* 성별 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <label style={{ fontSize: 13, fontWeight: 500, color: '#555' }}>性別</label>
+        <label style={{ fontSize: 13, fontWeight: 500, color: '#555' }}>
+          性別 <span style={{ color: '#E53E3E' }}>*</span>
+        </label>
         <div style={{ display: 'flex', gap: 8 }}>
           {(['male', 'female'] as const).map(g => (
             <button key={g} onClick={() => onChange({ ...companion, gender: g })} style={selectStyle(companion.gender === g)}>
@@ -77,6 +79,7 @@ function CompanionForm({ companion, index, errors, onChange, onRemove }: Compani
             </button>
           ))}
         </div>
+        {e('gender') && <span style={{ fontSize: 12, color: '#E53E3E' }}>{e('gender')}</span>}
       </div>
 
       {/* 초진/재진 */}
@@ -173,6 +176,7 @@ export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initial
       const next = { ...e }
       delete next[`c_${index}_name`]
       delete next[`c_${index}_birth`]
+      delete next[`c_${index}_gender`]
       delete next[`c_${index}_visitType`]
       delete next[`c_${index}_treatment`]
       return next
@@ -194,6 +198,7 @@ export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initial
         if (!c.name.trim()) errs[`c_${i}_name`] = 'お名前を入力してください'
         else if (!ROMAJI_REGEX.test(c.name.trim())) errs[`c_${i}_name`] = 'ローマ字で入力してください'
         if (!c.birthDate) errs[`c_${i}_birth`] = '生年月日を入力してください'
+        if (!c.gender) errs[`c_${i}_gender`] = '選択してください'
         if (!c.visitType) errs[`c_${i}_visitType`] = '選択してください'
         if (!c.desiredTreatment.trim()) errs[`c_${i}_treatment`] = 'ご希望の施術内容を入力してください'
       })

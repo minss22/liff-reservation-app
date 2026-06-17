@@ -28,7 +28,7 @@ export interface TimeSlot {
 export interface Companion {
   name: string
   birthDate: string
-  gender: 'male' | 'female'
+  gender: 'male' | 'female' | null
   visitType: 'first' | 'return' | null
   desiredTreatment: string
   budget: string
