@@ -86,7 +86,8 @@ export const reservationApi = {
       companions: data.companions.map(c => ({
         name: c.name,
         birthDate: c.birthDate,
-        gender: c.gender,
+        // 성별은 예약자(customers)와 동일하게 한국어로 저장
+        gender: c.gender === 'male' ? '남성' : c.gender === 'female' ? '여성' : '',
         visitType: c.visitType,
         treatmentRequest: c.desiredTreatment,
         budget: c.budget,

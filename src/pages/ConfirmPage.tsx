@@ -40,8 +40,8 @@ export default function ConfirmPage({ branch, date, time, consultation, onConfir
   }
 
   const summaryRows = [
-    { label: '店舗', value: branch.name },
-    { label: '住所', value: branch.address },
+    { label: '店舗', value: branch.nameJa || branch.name },
+    { label: '住所', value: branch.addressJa || branch.address },
     { label: '日時', value: `${formatDate(date)} ${time}` },
     { label: '初診・再診', value: consultation.visitType === 'first' ? '初診' : '再診' },
     { label: 'ご希望の施術', value: consultation.desiredTreatment },

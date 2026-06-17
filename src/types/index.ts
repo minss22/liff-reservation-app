@@ -13,8 +13,10 @@ export interface UserProfile {
 export interface Branch {
   id: string
   branchId: string   // LINE 병원 채널 ID (branches.branch_id)
-  name: string
-  address: string
+  name: string       // 한국어 (DB 저장/예약 스냅샷용)
+  nameJa?: string    // 일본어 표시용 (화면)
+  address: string    // 한국어
+  addressJa?: string // 일본어 표시용
   operatingHours: string
 }
 
