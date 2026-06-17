@@ -231,7 +231,7 @@ export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initial
       } />
 
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <StepIndicator total={3} current={3} />
+        <StepIndicator total={2} current={2} />
 
         {/* 초진/재진 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

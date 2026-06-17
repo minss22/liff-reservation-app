@@ -7,7 +7,7 @@ import type { TimeSlot } from '../types'
 interface SelectDatetimePageProps {
   branchId: string
   onNext: (date: string, time: string) => void
-  onBack: () => void
+  onBack?: () => void
   onOpenMyPage: () => void
   initialDate?: string
   initialTime?: string
@@ -68,7 +68,7 @@ export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyP
       } />
 
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <StepIndicator total={3} current={2} />
+        <StepIndicator total={2} current={1} />
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button

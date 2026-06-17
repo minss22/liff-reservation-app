@@ -1,4 +1,5 @@
 import liff from '@line/liff'
+import type { Companion, Reservation } from '../types'
 
 const BASE_URL = (import.meta as any).env.VITE_API_BASE_URL
 
@@ -63,21 +64,63 @@ export const reservationApi = {
   getAvailableSlots: (branchId: string, date: string) =>
     get('available-slots', { branchId, date }),
 
-  createReservation: (data: {
+  createReservation: async (data: {
     branchId: string
     date: string
     time: string
-    visitType: string
+    visitType: 'first' | 'return'
     desiredTreatment: string
     budget?: string
     surgeryHistory?: string
-    hasCompanion: boolean
-    companionInfo?: string
-  }) => post('reservation', data as unknown as Record<string, unknown>),
+    companions: Companion[]
+  }): Promise<Reservation> => {
+    // 프론트 필드명(desiredTreatment 등) → 백엔드 필드명(treatment_request 등) 매핑
+    const raw: any = await post('reservation', {
+      branchId: data.branchId,
+      date: data.date,
+      time: data.time,
+      visitType: data.visitType,
+      treatmentRequest: data.desiredTreatment,
+      budget: data.budget ?? '',
+      surgeryHistory: data.surgeryHistory ?? '',
+      companions: data.companions.map(c => ({
+        name: c.name,
+        birthDate: c.birthDate,
+        gender: c.gender,
+        visitType: c.visitType,
+        treatmentRequest: c.desiredTreatment,
+        budget: c.budget,
+        surgeryHistory: c.surgeryHistory,
+      })),
+    })
+    return {
+      id: raw.id,
+      branchName: raw.branchName,
+      date: raw.date,
+      time: raw.time,
+      visitType: raw.visitType,
+      desiredTreatment: raw.treatmentRequest,
+      status: raw.status,
+      createdAt: raw.createdAt,
+    }
+  },
 
-  getMyReservations: () => get('reservations', {
-    lineUserId: liff.getContext()?.userId ?? '',
-  }),
+  getMyReservations: async (): Promise<Reservation[]> => {
+    const rows: any[] = await get('reservations', {
+      lineUserId: liff.getContext()?.userId ?? '',
+    })
+    return rows.map(r => ({
+      id: r.id,
+      customerName: r.customerName,
+      branchName: r.branchName,
+      date: r.date,
+      time: r.time,
+      visitType: r.visitType,
+      desiredTreatment: r.treatmentRequest,
+      status: r.status,
+      createdAt: r.createdAt,
+    }))
+  },
 
   cancelReservation: (reservationId: string) =>
     post('cancel', { reservationId }),

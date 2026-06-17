@@ -15,8 +15,8 @@ const STATUS_BADGE: Record<string, { bg: string; color: string }> = {
 }
 
 const VISIT_TYPE_JP: Record<string, string> = {
-  '초진': '初診',
-  '재진': '再診',
+  first: '初診',
+  return: '再診',
 }
 
 export default function CompletePage({ reservation }: CompletePageProps) {

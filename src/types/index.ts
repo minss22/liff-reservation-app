@@ -12,9 +12,9 @@ export interface UserProfile {
 // 병원 지점
 export interface Branch {
   id: string
+  branchId: string   // LINE 병원 채널 ID (branches.branch_id)
   name: string
   address: string
-  phone: string
   operatingHours: string
 }
 
@@ -50,17 +50,18 @@ export interface ReservationRequest {
   branchId: string
   date: string
   time: string
-  visitType: string
+  visitType: 'first' | 'return'
   desiredTreatment: string
   budget?: string
   surgeryHistory?: string
   hasCompanion: boolean
-  companionInfo?: string
+  companions: Companion[]
 }
 
 // 예약 결과
 export interface Reservation {
   id: string
+  customerName?: string
   branchName: string
   date: string
   time: string
@@ -70,11 +71,10 @@ export interface Reservation {
   createdAt: string
 }
 
-// 예약 신청 단계
+// 예약 신청 단계 (기획서 화면 1~6 — 지점 선택 없음, 채널로 단일 병원 자동 연결)
 export type ReservationStep =
   | 'login'
   | 'profile'
-  | 'select-branch'
   | 'select-datetime'
   | 'consultation'
   | 'confirm'

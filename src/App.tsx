@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useLiff } from './hooks/useLiff'
-import { customerApi } from './utils/api'
+import { customerApi, branchApi } from './utils/api'
 
 import LoginPage from './pages/LoginPage'
 import ProfilePage from './pages/ProfilePage'
 import MyPage from './pages/MyPage'
-import SelectTreatmentPage from './pages/SelectTreatmentPage'
 import SelectDatetimePage from './pages/SelectDatetimePage'
 import ConsultationPage from './pages/ConsultationPage'
 import ConfirmPage from './pages/ConfirmPage'
@@ -13,6 +12,28 @@ import CompletePage from './pages/CompletePage'
 import { LoadingSpinner } from './components/ui'
 
 import type { ReservationStep, Branch, ConsultationData, Reservation, UserProfile } from './types'
+
+// 병원 식별자(branch_id) 결정
+//  1순위: LIFF URL 쿼리 ?branch=xxx
+//         예) 리치 메뉴 → https://liff.line.me/{liffId}?branch=2008835257
+//         LIFF 리다이렉트로 원본 쿼리가 liff.state 안에 감싸지는 경우도 함께 처리
+//  2순위: VITE_BRANCH_ID 환경변수 (단일 병원 / 로컬 개발 기본값)
+function resolveBranchId(): string {
+  const params = new URLSearchParams(window.location.search)
+  const fromUrl = params.get('branch')
+  if (fromUrl) return fromUrl
+
+  const liffState = params.get('liff.state')
+  if (liffState) {
+    const inner = new URLSearchParams(liffState.charAt(0) === '?' ? liffState.slice(1) : liffState)
+    const fromState = inner.get('branch')
+    if (fromState) return fromState
+  }
+
+  return ((import.meta as any).env.VITE_BRANCH_ID as string) || ''
+}
+
+const BRANCH_ID = resolveBranchId()
 
 export default function App() {
   const { isReady, isLoggedIn, error, lineUserId, displayName, pictureUrl, login } = useLiff()
@@ -22,7 +43,7 @@ export default function App() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
 
   // 예약 플로우 상태
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null)
+  const [branch, setBranch] = useState<Branch | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedTime, setSelectedTime] = useState<string>('')
   const [consultationData, setConsultationData] = useState<ConsultationData | null>(null)
@@ -35,13 +56,17 @@ export default function App() {
   useEffect(() => {
     if (!isReady || !isLoggedIn) return
     setIsCheckingProfile(true)
+    // 병원 정보 자동 로드 (채널 ID 기준) + 프로필 조회를 병행
+    branchApi.getBranch(BRANCH_ID)
+      .then((b: any) => setBranch(b))
+      .catch(console.error)
     customerApi.getProfile()
       .then((profile: any) => {
         if (profile) {
           setUserProfile(profile)
-          setStep('select-branch')   // 프로필 있으면 바로 지점 선택
+          setStep('select-datetime')   // 프로필 있으면 바로 날짜·시간 선택
         } else {
-          setStep('profile')         // 첫 방문: 기본 정보 입력
+          setStep('profile')           // 첫 방문: 기본 정보 입력
         }
       })
       .catch(() => setStep('profile'))
@@ -61,6 +86,18 @@ export default function App() {
       <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
         <div style={{ fontSize: 40 }}>⚠️</div>
         <p style={{ color: '#DC2626', textAlign: 'center', fontSize: 14 }}>{error}</p>
+      </div>
+    )
+  }
+
+  // ── 병원 식별 불가 (잘못된 예약 링크) ─────────────────────────
+  if (isLoggedIn && !BRANCH_ID) {
+    return (
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 }}>
+        <div style={{ fontSize: 40 }}>⚠️</div>
+        <p style={{ color: '#DC2626', textAlign: 'center', fontSize: 14 }}>
+          予約リンクが正しくありません。<br />クリニックの公式アカウントからもう一度お試しください。
+        </p>
       </div>
     )
   }
@@ -137,7 +174,7 @@ export default function App() {
             gender,
             isProfileComplete: true,
           }))
-          setStep('select-branch')
+          setStep('select-datetime')
         }}
       />
     )
@@ -148,31 +185,16 @@ export default function App() {
     setShowMyPage(true)
   }
 
-  // ── 지점 선택 (1/3) ───────────────────────────────────────────
-  if (step === 'select-branch') {
-    return (
-      <SelectTreatmentPage
-        onNext={(branch) => {
-          setSelectedBranch(branch)
-          setStep('select-datetime')
-        }}
-        onOpenMyPage={openMyPage}
-        initialBranchId={selectedBranch?.id ?? null}
-      />
-    )
-  }
-
-  // ── 날짜·시간 선택 (2/3) ─────────────────────────────────────
-  if (step === 'select-datetime' && selectedBranch) {
+  // ── 날짜·시간 선택 (1/2) ─────────────────────────────────────
+  if (step === 'select-datetime') {
     return (
       <SelectDatetimePage
-        branchId={selectedBranch.id}
+        branchId={BRANCH_ID}
         onNext={(date, time) => {
           setSelectedDate(date)
           setSelectedTime(time)
           setStep('consultation')
         }}
-        onBack={() => setStep('select-branch')}
         onOpenMyPage={openMyPage}
         initialDate={selectedDate || undefined}
         initialTime={selectedTime || undefined}
@@ -196,10 +218,10 @@ export default function App() {
   }
 
   // ── 예약 확인·제출 ────────────────────────────────────────────
-  if (step === 'confirm' && selectedBranch && consultationData) {
+  if (step === 'confirm' && branch && consultationData) {
     return (
       <ConfirmPage
-        branch={selectedBranch}
+        branch={branch}
         date={selectedDate}
         time={selectedTime}
         consultation={consultationData}

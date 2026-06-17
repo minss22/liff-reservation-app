@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { TopBar, Button, SummaryCard, InfoBox } from '../components/ui'
 import { reservationApi } from '../utils/api'
 import { formatDate } from '../utils/format'
-import type { Branch, ConsultationData, Reservation, Companion } from '../types'
+import type { Branch, ConsultationData, Reservation } from '../types'
 
 interface ConfirmPageProps {
   branch: Branch
@@ -13,21 +13,6 @@ interface ConfirmPageProps {
   onBack: () => void
 }
 
-function buildCompanionInfo(companions: Companion[]): string {
-  return companions.map((c, i) => {
-    const parts = [
-      `동반자${i + 1}: ${c.name}`,
-      c.gender === 'male' ? '남성' : '여성',
-      c.birthDate,
-      c.visitType === 'first' ? '초진' : '재진',
-      c.desiredTreatment,
-      ...(c.budget ? [c.budget] : []),
-      ...(c.surgeryHistory ? [c.surgeryHistory] : []),
-    ]
-    return parts.join(' / ')
-  }).join('\n')
-}
-
 export default function ConfirmPage({ branch, date, time, consultation, onConfirmed, onBack }: ConfirmPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -36,18 +21,15 @@ export default function ConfirmPage({ branch, date, time, consultation, onConfir
     setIsSubmitting(true)
     setError(null)
     try {
-      const res: any = await reservationApi.createReservation({
-        branchId: branch.id,
+      const res = await reservationApi.createReservation({
+        branchId: branch.branchId,
         date,
         time,
-        visitType: consultation.visitType === 'first' ? '초진' : '재진',
+        visitType: consultation.visitType,
         desiredTreatment: consultation.desiredTreatment,
         budget: consultation.budget || undefined,
         surgeryHistory: consultation.surgeryHistory || undefined,
-        hasCompanion: consultation.hasCompanion,
-        companionInfo: consultation.hasCompanion && consultation.companions.length > 0
-          ? buildCompanionInfo(consultation.companions)
-          : undefined,
+        companions: consultation.hasCompanion ? consultation.companions : [],
       })
       onConfirmed(res)
     } catch (e: any) {
