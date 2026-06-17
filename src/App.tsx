@@ -57,9 +57,14 @@ export default function App() {
     if (!isReady || !isLoggedIn) return
     setIsCheckingProfile(true)
     // 병원 정보 자동 로드 (채널 ID 기준) + 프로필 조회를 병행
+    // 조회 실패(branches 시트에 행이 없는 등) 시에도 흐름이 막히지 않도록 최소 정보로 폴백.
+    // (예약 제출은 백엔드가 branchId로 병원명을 다시 찾으므로 정상 동작)
     branchApi.getBranch(BRANCH_ID)
       .then((b: any) => setBranch(b))
-      .catch(console.error)
+      .catch((e: any) => {
+        console.error('getBranch 실패:', e)
+        setBranch({ id: '', branchId: BRANCH_ID, name: '', address: '', operatingHours: '' })
+      })
     customerApi.getProfile()
       .then((profile: any) => {
         if (profile) {
