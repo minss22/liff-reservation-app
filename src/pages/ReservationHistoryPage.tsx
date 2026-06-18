@@ -7,6 +7,7 @@ import type { Reservation } from '../types'
 interface ReservationHistoryPageProps {
   onBack: () => void
   onNewReservation: () => void
+  onReschedule: (reservation: Reservation) => void
 }
 
 const STATUS_BADGE: Record<string, { bg: string; color: string }> = {
@@ -22,7 +23,7 @@ const VISIT_TYPE_JP: Record<string, string> = {
   return: '再診',
 }
 
-export default function ReservationHistoryPage({ onBack, onNewReservation }: ReservationHistoryPageProps) {
+export default function ReservationHistoryPage({ onBack, onNewReservation, onReschedule }: ReservationHistoryPageProps) {
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -116,21 +117,39 @@ export default function ReservationHistoryPage({ onBack, onNewReservation }: Res
                   </div>
 
                   {canCancel && (
-                    <button
-                      onClick={() => handleCancel(r.id)}
-                      style={{
-                        width: '100%',
-                        padding: '8px',
-                        borderRadius: 8,
-                        border: '1px solid #E0E0E0',
-                        background: 'transparent',
-                        color: '#999',
-                        fontSize: 13,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      キャンセル
-                    </button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={() => onReschedule(r)}
+                        style={{
+                          flex: 1,
+                          padding: '8px',
+                          borderRadius: 8,
+                          border: '1px solid #1D9E75',
+                          background: 'transparent',
+                          color: '#1D9E75',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        時間変更
+                      </button>
+                      <button
+                        onClick={() => handleCancel(r.id)}
+                        style={{
+                          flex: 1,
+                          padding: '8px',
+                          borderRadius: 8,
+                          border: '1px solid #E0E0E0',
+                          background: 'transparent',
+                          color: '#999',
+                          fontSize: 13,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        キャンセル
+                      </button>
+                    </div>
                   )}
                 </div>
               )

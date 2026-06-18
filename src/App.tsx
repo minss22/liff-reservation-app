@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLiff } from './hooks/useLiff'
-import { customerApi, branchApi } from './utils/api'
+import { customerApi, branchApi, reservationApi } from './utils/api'
 
 import LoginPage from './pages/LoginPage'
 import ProfilePage from './pages/ProfilePage'
@@ -9,6 +9,7 @@ import SelectDatetimePage from './pages/SelectDatetimePage'
 import ConsultationPage from './pages/ConsultationPage'
 import ConfirmPage from './pages/ConfirmPage'
 import CompletePage from './pages/CompletePage'
+import ReservationHistoryPage from './pages/ReservationHistoryPage'
 import { LoadingSpinner } from './components/ui'
 
 import type { ReservationStep, Branch, ConsultationData, Reservation, UserProfile } from './types'
@@ -52,6 +53,11 @@ export default function App() {
   // 마이페이지 표시 여부 + 프로필 편집 여부
   const [showMyPage, setShowMyPage] = useState(false)
   const [isEditingProfile, setIsEditingProfile] = useState(false)
+
+  // 예약 관리 (목록 / 시간 변경)
+  const [showHistory, setShowHistory] = useState(false)
+  const [rescheduleTarget, setRescheduleTarget] = useState<Reservation | null>(null)
+  const [historyKey, setHistoryKey] = useState(0)
 
   useEffect(() => {
     if (!isReady || !isLoggedIn) return
@@ -152,6 +158,39 @@ export default function App() {
         pictureUrl={pictureUrl}
         onClose={() => setShowMyPage(false)}
         onEdit={() => setIsEditingProfile(true)}
+        onOpenReservations={() => { setShowMyPage(false); setShowHistory(true) }}
+      />
+    )
+  }
+
+  // ── 예약 관리: 시간 변경 (날짜·시간 재선택) ──────────────────
+  if (rescheduleTarget) {
+    return (
+      <SelectDatetimePage
+        branchId={BRANCH_ID}
+        onNext={(date, time) => {
+          reservationApi.rescheduleReservation(rescheduleTarget.id, date, time)
+            .then(() => {
+              alert('予約時間の変更をリクエストしました。\nクリニックの確認後に確定します。')
+              setRescheduleTarget(null)
+              setHistoryKey(k => k + 1)
+            })
+            .catch((e: any) => alert(e?.message || '変更リクエストに失敗しました。'))
+        }}
+        onBack={() => setRescheduleTarget(null)}
+        onOpenMyPage={() => {}}
+      />
+    )
+  }
+
+  // ── 예약 관리: 목록 ───────────────────────────────────────────
+  if (showHistory) {
+    return (
+      <ReservationHistoryPage
+        key={historyKey}
+        onBack={() => setShowHistory(false)}
+        onNewReservation={() => { setShowHistory(false); setStep('select-datetime') }}
+        onReschedule={(r) => setRescheduleTarget(r)}
       />
     )
   }

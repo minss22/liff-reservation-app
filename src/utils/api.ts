@@ -125,4 +125,8 @@ export const reservationApi = {
 
   cancelReservation: (reservationId: string) =>
     post('cancel', { reservationId }),
+
+  // 예약 시간 변경 요청 (병원 확인 후 확정/거절)
+  rescheduleReservation: (reservationId: string, date: string, time: string) =>
+    post('reschedule', { reservationId, date, time }),
 }

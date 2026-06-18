@@ -7,9 +7,10 @@ interface MyPageProps {
   pictureUrl: string | null
   onClose: () => void
   onEdit: () => void
+  onOpenReservations: () => void
 }
 
-export default function MyPage({ userProfile, displayName, pictureUrl, onClose, onEdit }: MyPageProps) {
+export default function MyPage({ userProfile, displayName, pictureUrl, onClose, onEdit, onOpenReservations }: MyPageProps) {
   const genderLabel =
     userProfile?.gender === 'male' ? '男性' :
     userProfile?.gender === 'female' ? '女性' : '-'
@@ -66,22 +67,39 @@ export default function MyPage({ userProfile, displayName, pictureUrl, onClose, 
           ]} />
         </div>
 
-        {/* 편집 버튼 */}
-        <button
-          onClick={onEdit}
-          style={{
-            padding: '15px',
-            borderRadius: 12,
-            border: '1.5px solid #1D9E75',
-            background: '#fff',
-            color: '#1D9E75',
-            fontSize: 15,
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          プロフィールを編集
-        </button>
+        {/* 예약 관리 + 편집 버튼 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <button
+            onClick={onOpenReservations}
+            style={{
+              padding: '15px',
+              borderRadius: 12,
+              border: 'none',
+              background: '#06C755',
+              color: '#fff',
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            予約の管理
+          </button>
+          <button
+            onClick={onEdit}
+            style={{
+              padding: '15px',
+              borderRadius: 12,
+              border: '1.5px solid #1D9E75',
+              background: '#fff',
+              color: '#1D9E75',
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            プロフィールを編集
+          </button>
+        </div>
       </div>
     </div>
   )
