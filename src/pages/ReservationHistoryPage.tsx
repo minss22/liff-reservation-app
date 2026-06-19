@@ -89,6 +89,16 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
     }
   }
 
+  const handleDeleteCompanion = async (companionId: string) => {
+    if (!window.confirm('この同行者を削除しますか？')) return
+    try {
+      await reservationApi.deleteCompanion(companionId)
+      setViewList(prev => prev ? prev.filter(c => c.id !== companionId) : prev)
+    } catch (e: any) {
+      alert(e?.message || '削除中にエラーが発生しました。')
+    }
+  }
+
   const openAdd = (r: Reservation) => {
     setAddTarget(r)
     setAddList([emptyCompanion()])
@@ -200,6 +210,13 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
                       <div style={{ fontSize: 12.5, color: '#666' }}>
                         {VISIT_TYPE_JP[c.visitType] ?? c.visitType} ・ {c.desiredTreatment}
                       </div>
+                      {(c.status === 'pending' || c.status === 'confirmed') && (
+                        <div style={{ marginTop: 8, textAlign: 'right' }}>
+                          <button onClick={() => handleDeleteCompanion(c.id)} style={{ background: 'none', border: 'none', color: '#E53E3E', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', padding: '2px 4px' }}>
+                            削除
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )
                 })}

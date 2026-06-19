@@ -135,6 +135,10 @@ export const reservationApi = {
     id: string; name: string; visitType: 'first' | 'return'; desiredTreatment: string; status: string
   }>> => get('companions', { reservationId }),
 
+  // 동반자 삭제 (고객·매니저에 알림)
+  deleteCompanion: (companionId: string) =>
+    post('delete-companion', { companionId }),
+
   // 예약 후 동반자 추가 (병원 승인 대기 — 거절돼도 기존 예약은 유지)
   addCompanions: (reservationId: string, companions: Companion[]) =>
     post('add-companion', {
