@@ -139,6 +139,15 @@ export const reservationApi = {
   deleteCompanion: (companionId: string) =>
     post('delete-companion', { companionId }),
 
+  // 병원이 제안한 시간 정보 조회 (응답 페이지용)
+  getProposalInfo: (reservationId: string): Promise<{
+    ok: boolean; reason?: string; branchNameJa?: string; date?: string; times?: string[]
+  }> => get('proposal-info', { reservationId, lineUserId: liff.getContext()?.userId ?? '' }),
+
+  // 제안 응답 (accept=선택시간 확정 / decline=취소)
+  respondProposal: (reservationId: string, action: 'accept' | 'decline', time?: string): Promise<{ status: string; date?: string; time?: string }> =>
+    post('proposal-respond', { reservationId, action, time: time ?? '' }),
+
   // 예약 후 동반자 추가 (병원 승인 대기 — 거절돼도 기존 예약은 유지)
   addCompanions: (reservationId: string, companions: Companion[]) =>
     post('add-companion', {

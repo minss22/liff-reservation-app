@@ -10,6 +10,7 @@ import ConsultationPage from './pages/ConsultationPage'
 import ConfirmPage from './pages/ConfirmPage'
 import CompletePage from './pages/CompletePage'
 import ReservationHistoryPage from './pages/ReservationHistoryPage'
+import ProposalResponsePage from './pages/ProposalResponsePage'
 import { LoadingSpinner } from './components/ui'
 import { useDialog } from './components/Dialog'
 
@@ -36,6 +37,20 @@ function resolveBranchId(): string {
 }
 
 const BRANCH_ID = resolveBranchId()
+
+// 병원 시간제안 응답 링크: ?respond=<reservationId> (liff.state 안에 감싸진 경우도 처리)
+function resolveRespondId(): string {
+  const params = new URLSearchParams(window.location.search)
+  const fromUrl = params.get('respond')
+  if (fromUrl) return fromUrl
+  const liffState = params.get('liff.state')
+  if (liffState) {
+    const inner = new URLSearchParams(liffState.charAt(0) === '?' ? liffState.slice(1) : liffState)
+    return inner.get('respond') || ''
+  }
+  return ''
+}
+const RESPOND_ID = resolveRespondId()
 
 export default function App() {
   const { isReady, isLoggedIn, error, lineUserId, displayName, pictureUrl, login } = useLiff()
@@ -118,6 +133,11 @@ export default function App() {
   // ── 로그인 ────────────────────────────────────────────────────
   if (!isLoggedIn || step === 'login') {
     return <LoginPage onLogin={() => login()} isLoading={false} />
+  }
+
+  // ── 병원 시간제안 응답 (LINE 알림 버튼으로 진입: ?respond=) ──────
+  if (RESPOND_ID) {
+    return <ProposalResponsePage reservationId={RESPOND_ID} />
   }
 
   // ── 마이페이지 (프로필 편집 모드) ─────────────────────────────
