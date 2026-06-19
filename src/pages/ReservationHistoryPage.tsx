@@ -64,11 +64,22 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
   const [addErrors, setAddErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => {
+  const loadReservations = (silent = false) => {
+    if (!silent) setIsLoading(true)
     reservationApi.getMyReservations()
       .then((res: any) => setReservations(res))
       .catch(console.error)
-      .finally(() => setIsLoading(false))
+      .finally(() => { if (!silent) setIsLoading(false) })
+  }
+  useEffect(() => { loadReservations() }, [])
+
+  // 자동 새로고침: 앱 복귀 시 즉시 + 15초마다 (조용히)
+  useEffect(() => {
+    const tick = () => { if (document.visibilityState === 'visible') loadReservations(true) }
+    const iv = setInterval(tick, 15000)
+    window.addEventListener('focus', tick)
+    document.addEventListener('visibilitychange', tick)
+    return () => { clearInterval(iv); window.removeEventListener('focus', tick); document.removeEventListener('visibilitychange', tick) }
   }, [])
 
   const handleCancel = async (id: string) => {
