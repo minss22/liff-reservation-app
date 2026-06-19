@@ -1,4 +1,5 @@
-import { SummaryCard } from '../components/ui'
+import liff from '@line/liff'
+import { SummaryCard, Button } from '../components/ui'
 import { formatDate, formatStatus } from '../utils/format'
 import type { Reservation } from '../types'
 
@@ -91,6 +92,12 @@ export default function CompletePage({ reservation }: CompletePageProps) {
         textAlign: 'center',
       }}>
         予約確定後、前日と当日に<br />リマインダーをお送りします
+      </div>
+
+      <div style={{ width: '100%' }}>
+        <Button fullWidth onClick={() => { try { liff.closeWindow() } catch { /* noop */ } }}>
+          閉じる
+        </Button>
       </div>
     </div>
   )
