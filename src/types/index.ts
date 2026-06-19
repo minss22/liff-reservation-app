@@ -17,7 +17,6 @@ export interface Branch {
   nameJa?: string    // 일본어 표시용 (화면)
   address: string    // 한국어
   addressJa?: string // 일본어 표시용
-  operatingHours: string
 }
 
 // 예약 가능 슬롯

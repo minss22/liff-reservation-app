@@ -69,7 +69,7 @@ export default function App() {
       .then((b: any) => setBranch(b))
       .catch((e: any) => {
         console.error('getBranch 실패:', e)
-        setBranch({ id: '', branchId: BRANCH_ID, name: '', address: '', operatingHours: '' })
+        setBranch({ id: '', branchId: BRANCH_ID, name: '', address: '' })
       })
     customerApi.getProfile()
       .then((profile: any) => {
