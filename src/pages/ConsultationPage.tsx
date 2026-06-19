@@ -52,7 +52,7 @@ function CompanionForm({ companion, index, errors, onChange, onRemove }: Compani
       <Input
         label="お名前（ローマ字）"
         value={companion.name}
-        onChange={ev => onChange({ ...companion, name: ev.target.value })}
+        onChange={ev => onChange({ ...companion, name: ev.target.value.toUpperCase() })}
         placeholder="YAMADA HANAKO"
         error={e('name')}
         autoCapitalize="characters"

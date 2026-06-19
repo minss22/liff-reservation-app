@@ -72,7 +72,7 @@ export default function ProfilePage({
           label="お名前（ローマ字）　*"
           value={name}
           onChange={e => {
-            setName(e.target.value)
+            setName(e.target.value.toUpperCase())
             if (errors.name) setErrors(ex => ({ ...ex, name: '' }))
           }}
           placeholder="YAMADA TARO"
