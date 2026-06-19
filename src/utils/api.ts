@@ -129,4 +129,24 @@ export const reservationApi = {
   // 예약 시간 변경 요청 (병원 확인 후 확정/거절)
   rescheduleReservation: (reservationId: string, date: string, time: string) =>
     post('reschedule', { reservationId, date, time }),
+
+  // 예약의 동반자 목록 조회
+  getCompanions: (reservationId: string): Promise<Array<{
+    id: string; name: string; visitType: 'first' | 'return'; desiredTreatment: string; status: string
+  }>> => get('companions', { reservationId }),
+
+  // 예약 후 동반자 추가 (병원 승인 대기 — 거절돼도 기존 예약은 유지)
+  addCompanions: (reservationId: string, companions: Companion[]) =>
+    post('add-companion', {
+      reservationId,
+      companions: companions.map(c => ({
+        name: c.name,
+        birthDate: c.birthDate,
+        gender: c.gender === 'male' ? '남성' : c.gender === 'female' ? '여성' : '',
+        visitType: c.visitType,
+        treatmentRequest: c.desiredTreatment,
+        budget: c.budget,
+        surgeryHistory: c.surgeryHistory,
+      })),
+    }),
 }

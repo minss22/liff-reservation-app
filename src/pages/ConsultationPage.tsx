@@ -9,9 +9,9 @@ interface ConsultationPageProps {
   initialData?: ConsultationData | null
 }
 
-const ROMAJI_REGEX = /^[A-Za-z\s\-'.]+$/
+export const ROMAJI_REGEX = /^[A-Za-z\s\-'.]+$/
 
-const emptyCompanion = (): Companion => ({
+export const emptyCompanion = (): Companion => ({
   name: '', birthDate: '', gender: null,
   visitType: null, desiredTreatment: '', budget: '', surgeryHistory: '',
 })
@@ -24,7 +24,7 @@ interface CompanionFormProps {
   onRemove: () => void
 }
 
-function CompanionForm({ companion, index, errors, onChange, onRemove }: CompanionFormProps) {
+export function CompanionForm({ companion, index, errors, onChange, onRemove }: CompanionFormProps) {
   const e = (key: string) => errors[`c_${index}_${key}`]
 
   const selectStyle = (active: boolean): React.CSSProperties => ({
