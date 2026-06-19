@@ -11,6 +11,7 @@ import ConfirmPage from './pages/ConfirmPage'
 import CompletePage from './pages/CompletePage'
 import ReservationHistoryPage from './pages/ReservationHistoryPage'
 import { LoadingSpinner } from './components/ui'
+import { useDialog } from './components/Dialog'
 
 import type { ReservationStep, Branch, ConsultationData, Reservation, UserProfile } from './types'
 
@@ -38,6 +39,7 @@ const BRANCH_ID = resolveBranchId()
 
 export default function App() {
   const { isReady, isLoggedIn, error, lineUserId, displayName, pictureUrl, login } = useLiff()
+  const dialog = useDialog()
 
   const [step, setStep] = useState<ReservationStep>('login')
   const [isCheckingProfile, setIsCheckingProfile] = useState(false)
@@ -171,11 +173,11 @@ export default function App() {
         onNext={(date, time) => {
           reservationApi.rescheduleReservation(rescheduleTarget.id, date, time)
             .then(() => {
-              alert('予約時間の変更をリクエストしました。\nクリニックの確認後に確定します。')
               setRescheduleTarget(null)
               setHistoryKey(k => k + 1)
+              dialog.alert('予約時間の変更をリクエストしました。\nクリニックの確認後に確定します。')
             })
-            .catch((e: any) => alert(e?.message || '変更リクエストに失敗しました。'))
+            .catch((e: any) => dialog.alert(e?.message || '変更リクエストに失敗しました。'))
         }}
         onBack={() => setRescheduleTarget(null)}
         onOpenMyPage={() => {}}

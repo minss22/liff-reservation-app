@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { TopBar, Button, LoadingSpinner } from '../components/ui'
 import { CompanionForm, emptyCompanion, ROMAJI_REGEX } from './ConsultationPage'
+import { useDialog } from '../components/Dialog'
 import { reservationApi } from '../utils/api'
 import { formatDate, formatStatus } from '../utils/format'
 import type { Reservation, Companion } from '../types'
@@ -49,6 +50,7 @@ function validateCompanions(list: Companion[]) {
 }
 
 export default function ReservationHistoryPage({ onBack, onNewReservation, onReschedule }: ReservationHistoryPageProps) {
+  const dialog = useDialog()
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -70,12 +72,12 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
   }, [])
 
   const handleCancel = async (id: string) => {
-    if (!window.confirm('予約をキャンセルしますか？')) return
+    if (!(await dialog.confirm({ message: '予約をキャンセルしますか？', okText: 'はい', cancelText: 'いいえ', danger: true }))) return
     try {
       await reservationApi.cancelReservation(id)
       setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'cancelled' as const } : r))
     } catch {
-      alert('キャンセル処理中にエラーが発生しました。')
+      dialog.alert('キャンセル処理中にエラーが発生しました。')
     }
   }
 
@@ -90,12 +92,12 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
   }
 
   const handleDeleteCompanion = async (companionId: string) => {
-    if (!window.confirm('この同行者を削除しますか？')) return
+    if (!(await dialog.confirm({ message: 'この同行者を削除しますか？', okText: 'はい', cancelText: 'いいえ', danger: true }))) return
     try {
       await reservationApi.deleteCompanion(companionId)
       setViewList(prev => prev ? prev.filter(c => c.id !== companionId) : prev)
     } catch (e: any) {
-      alert(e?.message || '削除中にエラーが発生しました。')
+      dialog.alert(e?.message || '削除中にエラーが発生しました。')
     }
   }
 
@@ -113,9 +115,9 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
     try {
       await reservationApi.addCompanions(addTarget.id, addList)
       setAddTarget(null)
-      alert('同行者の追加を申請しました。\nクリニックの承認後にお知らせします。')
+      dialog.alert('同行者の追加を申請しました。\nクリニックの承認後にお知らせします。')
     } catch (e: any) {
-      alert(e?.message || '申請中にエラーが発生しました。')
+      dialog.alert(e?.message || '申請中にエラーが発生しました。')
     } finally {
       setSubmitting(false)
     }
