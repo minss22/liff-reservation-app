@@ -185,6 +185,12 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
                       <button onClick={() => handleCancel(r.id)} style={ghostBtn('#999', '#E0E0E0')}>キャンセル</button>
                     </div>
                   )}
+
+                  {(r.status === 'cancelled' || r.status === 'rejected') && (
+                    <button onClick={onNewReservation} style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: '#1D9E75', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      再予約する
+                    </button>
+                  )}
                 </div>
               )
             })}
