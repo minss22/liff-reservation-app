@@ -102,6 +102,17 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
     }
   }
 
+  const handleRebook = async (id: string) => {
+    if (!(await dialog.confirm({ message: '同じ内容で予約しますか？', okText: 'はい', cancelText: 'いいえ' }))) return
+    try {
+      await reservationApi.rebook(id)
+      loadReservations()
+      dialog.alert('ご予約を受け付けました。\nクリニックの確認後にお知らせします。')
+    } catch (e: any) {
+      dialog.alert(e?.message || '予約に失敗しました')
+    }
+  }
+
   const handleDeleteCompanion = async (companionId: string) => {
     if (!(await dialog.confirm({ message: 'この同行者を削除しますか？', okText: 'はい', cancelText: 'いいえ', danger: true }))) return
     try {
@@ -187,8 +198,8 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
                   )}
 
                   {(r.status === 'cancelled' || r.status === 'rejected') && (
-                    <button onClick={onNewReservation} style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: '#1D9E75', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                      再予約する
+                    <button onClick={() => handleRebook(r.id)} style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: '#1D9E75', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      同じ内容で再予約
                     </button>
                   )}
                 </div>

@@ -126,6 +126,10 @@ export const reservationApi = {
   cancelReservation: (reservationId: string) =>
     post('cancel', { reservationId }),
 
+  // 재예약: 취소/거절된 예약을 같은 정보 그대로 다시 접수
+  rebook: (reservationId: string) =>
+    post('rebook', { reservationId }),
+
   // 예약 시간 변경 요청 (병원 확인 후 확정/거절)
   rescheduleReservation: (reservationId: string, date: string, time: string) =>
     post('reschedule', { reservationId, date, time }),
