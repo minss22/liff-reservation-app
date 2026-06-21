@@ -11,11 +11,12 @@ interface SelectDatetimePageProps {
   onOpenMyPage: () => void
   initialDate?: string
   initialTime?: string
+  reschedule?: { date: string; time: string }   // 설정 시 '시간 변경' 모드
 }
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 
-export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyPage, initialDate, initialTime }: SelectDatetimePageProps) {
+export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyPage, initialDate, initialTime, reschedule }: SelectDatetimePageProps) {
   const [yearMonth, setYearMonth] = useState(initialDate ? initialDate.slice(0, 7) : currentYearMonth())
   const [availableDates, setAvailableDates] = useState<string[]>([])
   const [selectedDate, setSelectedDate] = useState<string | null>(initialDate ?? null)
@@ -61,14 +62,22 @@ export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyP
 
   return (
     <div style={{ minHeight: '100dvh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <TopBar title="日時の選択" onBack={onBack} rightAction={
+      <TopBar title={reschedule ? '予約時間の変更' : '日時の選択'} onBack={onBack} rightAction={reschedule ? undefined : (
         <button onClick={onOpenMyPage} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, padding: '2px 4px', color: '#555' }}>
           👤
         </button>
-      } />
+      )} />
 
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <StepIndicator total={2} current={1} />
+        {reschedule ? (
+          <div style={{ padding: '14px 16px', background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 12, fontSize: 13.5, color: '#9A3412', lineHeight: 1.7 }}>
+            🔁 <b>予約時間の変更</b><br />
+            現在のご予約：<b>{reschedule.date.replace(/-/g, '/')} {reschedule.time}</b><br />
+            新しい日時を選んで「変更をリクエスト」してください。
+          </div>
+        ) : (
+          <StepIndicator total={2} current={1} />
+        )}
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button
@@ -174,7 +183,7 @@ export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyP
           disabled={!selectedDate || !selectedTime}
           onClick={() => selectedDate && selectedTime && onNext(selectedDate, selectedTime)}
         >
-          次へ
+          {reschedule ? '変更をリクエスト' : '次へ'}
         </Button>
       </div>
     </div>

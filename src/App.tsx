@@ -190,6 +190,7 @@ export default function App() {
     return (
       <SelectDatetimePage
         branchId={BRANCH_ID}
+        reschedule={{ date: rescheduleTarget.date, time: rescheduleTarget.time }}
         onNext={(date, time) => {
           reservationApi.rescheduleReservation(rescheduleTarget.id, date, time)
             .then(() => {
