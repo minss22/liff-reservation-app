@@ -196,7 +196,7 @@ export default function App() {
             .then(() => {
               setRescheduleTarget(null)
               setHistoryKey(k => k + 1)
-              dialog.alert('予約時間の変更をリクエストしました。\nクリニックの確認後に確定します。')
+              dialog.alert('予約日時の変更をリクエストしました。\nクリニックの確認後に確定します。')
             })
             .catch((e: any) => dialog.alert(e?.message || '変更リクエストに失敗しました。'))
         }}

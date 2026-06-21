@@ -25,6 +25,10 @@ const VISIT_TYPE_JP: Record<string, string> = {
   return: '再診',
 }
 
+// 예약 일시(현지=JST/KST)가 지났는지
+const isPastReservation = (date: string, time: string) =>
+  new Date(`${date}T${(time || '23:59')}:00`).getTime() < Date.now()
+
 type CompanionRow = { id: string; name: string; visitType: 'first' | 'return'; desiredTreatment: string; status: string }
 
 const overlayStyle: React.CSSProperties = {
@@ -162,7 +166,7 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {reservations.map(r => {
               const badge = STATUS_BADGE[r.status] ?? STATUS_BADGE.pending
-              const canManage = r.status === 'pending' || r.status === 'confirmed'
+              const canManage = (r.status === 'pending' || r.status === 'confirmed') && !isPastReservation(r.date, r.time)
               return (
                 <div key={r.id} style={{ background: '#fff', borderRadius: 14, padding: '16px', border: '1px solid #F0F0F0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
@@ -197,7 +201,7 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
                     </div>
                   )}
 
-                  {(r.status === 'cancelled' || r.status === 'rejected') && (
+                  {(r.status === 'cancelled' || r.status === 'rejected') && !isPastReservation(r.date, r.time) && (
                     <button onClick={() => handleRebook(r.id)} style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: '#1D9E75', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                       同じ内容で再予約
                     </button>
@@ -240,7 +244,7 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
                       <div style={{ fontSize: 12.5, color: '#666' }}>
                         {VISIT_TYPE_JP[c.visitType] ?? c.visitType} ・ {c.desiredTreatment}
                       </div>
-                      {(c.status === 'pending' || c.status === 'confirmed') && (
+                      {(c.status === 'pending' || c.status === 'confirmed') && viewTarget && !isPastReservation(viewTarget.date, viewTarget.time) && (
                         <div style={{ marginTop: 8, textAlign: 'right' }}>
                           <button onClick={() => handleDeleteCompanion(c.id)} style={{ background: 'none', border: 'none', color: '#E53E3E', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', padding: '2px 4px' }}>
                             削除

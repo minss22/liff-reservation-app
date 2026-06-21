@@ -62,7 +62,7 @@ export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyP
 
   return (
     <div style={{ minHeight: '100dvh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <TopBar title={reschedule ? '予約時間の変更' : '日時の選択'} onBack={onBack} rightAction={reschedule ? undefined : (
+      <TopBar title={reschedule ? '予約日時の変更' : '日時の選択'} onBack={onBack} rightAction={reschedule ? undefined : (
         <button onClick={onOpenMyPage} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, padding: '2px 4px', color: '#555' }}>
           👤
         </button>
@@ -71,7 +71,7 @@ export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyP
       <div style={{ flex: 1, padding: '20px 20px 120px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         {reschedule ? (
           <div style={{ padding: '14px 16px', background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 12, fontSize: 13.5, color: '#9A3412', lineHeight: 1.7 }}>
-            🔁 <b>予約時間の変更</b><br />
+            🔁 <b>予約日時の変更</b><br />
             現在のご予約：<b>{reschedule.date.replace(/-/g, '/')} {reschedule.time}</b><br />
             新しい日時を選んで「変更をリクエスト」してください。
           </div>
