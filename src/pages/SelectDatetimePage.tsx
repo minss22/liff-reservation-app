@@ -165,7 +165,6 @@ export default function SelectDatetimePage({ branchId, onNext, onBack, onOpenMyP
                         fontSize: 14,
                         fontWeight: isSelected ? 700 : 400,
                         cursor: slot.available ? 'pointer' : 'not-allowed',
-                        textDecoration: slot.available ? 'none' : 'line-through',
                         transition: 'all 0.15s',
                       }}
                     >{slot.time}</button>

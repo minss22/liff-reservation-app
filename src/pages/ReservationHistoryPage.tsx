@@ -201,7 +201,7 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
                     </div>
                   )}
 
-                  {(r.status === 'cancelled' || r.status === 'rejected') && !isPastReservation(r.date, r.time) && (
+                  {r.status === 'cancelled' && !isPastReservation(r.date, r.time) && (
                     <button onClick={() => handleRebook(r.id)} style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: '#1D9E75', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                       同じ内容で再予約
                     </button>
