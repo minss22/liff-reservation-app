@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import liff from '@line/liff'
 import { TopBar, LoadingSpinner, Button } from '../components/ui'
+import { useDialog } from '../components/Dialog'
 import { reservationApi } from '../utils/api'
 import { formatDate, formatStatus } from '../utils/format'
 import type { ReservationDetail, ReservationPerson } from '../types'
@@ -25,10 +26,15 @@ function Row({ k, v }: { k: string; v?: string | null }) {
   )
 }
 
-function Person({ label, p }: { label: string; p: ReservationPerson }) {
+function Person({ label, p, onDelete }: { label: string; p: ReservationPerson; onDelete?: () => void }) {
   return (
     <div style={{ border: '1px solid #F0F0F0', borderRadius: 12, padding: '14px 16px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: '#1D9E75' }}>{label}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#1D9E75' }}>{label}</div>
+        {onDelete && (
+          <button onClick={onDelete} style={{ background: 'none', border: 'none', color: '#E53E3E', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', padding: '2px 4px' }}>削除</button>
+        )}
+      </div>
       <Row k="お名前" v={p.name} />
       <Row k="生年月日" v={p.birthDate} />
       <Row k="性別" v={genderJP(p.gender)} />
@@ -47,16 +53,27 @@ interface Props {
 }
 
 export default function ReservationDetailPage({ reservationId, onBack, fromNotification }: Props) {
+  const dialog = useDialog()
   const [detail, setDetail] = useState<ReservationDetail | null>(null)
   const [err, setErr] = useState('')
 
-  useEffect(() => {
+  const load = useCallback(() => {
     reservationApi.getReservationDetail(reservationId)
       .then(setDetail)
       .catch((e: any) => setErr(e?.message || '読み込みに失敗しました'))
   }, [reservationId])
+  useEffect(() => { load() }, [load])
 
   const badge = detail?.status ? (STATUS_BADGE[detail.status] ?? STATUS_BADGE.pending) : STATUS_BADGE.pending
+  // 활성(접수/확정) + 지나지 않은 예약이면 동반자 삭제 가능
+  const isPast = detail?.date ? new Date(`${detail.date}T${(detail.time || '23:59')}:00`).getTime() < Date.now() : false
+  const canManage = !!detail?.ok && (detail.status === 'pending' || detail.status === 'confirmed') && !isPast
+
+  const handleDelete = async (companionId: string) => {
+    if (!(await dialog.confirm({ message: 'この同行者を削除しますか？', okText: 'はい', cancelText: 'いいえ', danger: true }))) return
+    try { await reservationApi.deleteCompanion(companionId); load() }
+    catch (e: any) { dialog.alert(e?.message || '削除中にエラーが発生しました。') }
+  }
 
   return (
     <div style={{ minHeight: '100dvh', background: '#F8F8F8', display: 'flex', flexDirection: 'column' }}>
@@ -80,7 +97,10 @@ export default function ReservationDetailPage({ reservationId, onBack, fromNotif
               <div style={{ fontSize: 15, color: '#333' }}>{formatDate(detail.date as string)} {detail.time}</div>
             </div>
             {detail.booker && <Person label="ご予約者" p={detail.booker} />}
-            {(detail.companions ?? []).map((c, i) => <Person key={i} label={`同行者 ${i + 1}`} p={c} />)}
+            {(detail.companions ?? []).map((c, i) => (
+              <Person key={c.id ?? i} label={`同行者 ${i + 1}`} p={c}
+                onDelete={canManage && c.id && (c.status === 'pending' || c.status === 'confirmed') ? () => handleDelete(c.id as string) : undefined} />
+            ))}
           </>
         )}
       </div>

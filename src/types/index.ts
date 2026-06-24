@@ -74,6 +74,7 @@ export interface Reservation {
 
 // 예약 상세 (예약자/동반자 1인)
 export interface ReservationPerson {
+  id?: string
   name: string
   birthDate: string | null
   gender: string
