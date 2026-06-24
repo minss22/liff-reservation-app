@@ -52,9 +52,9 @@ export function getCalendarDays(yearMonth: string): (number | null)[] {
   return days
 }
 
-// 오늘 날짜 ("2026-07-15")
+// 오늘 날짜 ("2026-07-15") — KST/JST(UTC+9) 기준. (toISOString은 UTC라 자정~오전9시에 어제로 잡히는 문제 방지)
 export function today(): string {
-  return new Date().toISOString().slice(0, 10)
+  return new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10)
 }
 
 // 현재 년월 ("2026-07")
