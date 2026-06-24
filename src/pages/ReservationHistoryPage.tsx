@@ -10,6 +10,7 @@ interface ReservationHistoryPageProps {
   onBack: () => void
   onNewReservation: () => void
   onReschedule: (reservation: Reservation) => void
+  onOpenDetail: (reservationId: string) => void
 }
 
 const STATUS_BADGE: Record<string, { bg: string; color: string }> = {
@@ -53,7 +54,7 @@ function validateCompanions(list: Companion[]) {
   return errs
 }
 
-export default function ReservationHistoryPage({ onBack, onNewReservation, onReschedule }: ReservationHistoryPageProps) {
+export default function ReservationHistoryPage({ onBack, onNewReservation, onReschedule, onOpenDetail }: ReservationHistoryPageProps) {
   const dialog = useDialog()
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -169,21 +170,25 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
               const canManage = (r.status === 'pending' || r.status === 'confirmed') && !isPastReservation(r.date, r.time)
               return (
                 <div key={r.id} style={{ background: '#fff', borderRadius: 14, padding: '16px', border: '1px solid #F0F0F0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                    <div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 3 }}>
-                        {r.desiredTreatment.length > 20 ? r.desiredTreatment.slice(0, 20) + '…' : r.desiredTreatment}
+                  <div onClick={() => onOpenDetail(r.id)} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 3 }}>
+                          {r.desiredTreatment.length > 20 ? r.desiredTreatment.slice(0, 20) + '…' : r.desiredTreatment}
+                        </div>
+                        <div style={{ fontSize: 13, color: '#888' }}>{r.branchName}</div>
                       </div>
-                      <div style={{ fontSize: 13, color: '#888' }}>{r.branchName}</div>
+                      <span style={{ padding: '4px 10px', borderRadius: 12, background: badge.bg, color: badge.color, fontSize: 12, fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
+                        {formatStatus(r.status)}
+                      </span>
                     </div>
-                    <span style={{ padding: '4px 10px', borderRadius: 12, background: badge.bg, color: badge.color, fontSize: 12, fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
-                      {formatStatus(r.status)}
-                    </span>
-                  </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: '#F8F8F8', borderRadius: 8, marginBottom: 12 }}>
-                    <span style={{ fontSize: 13, color: '#666' }}>{formatDate(r.date)} {r.time}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>{VISIT_TYPE_JP[r.visitType] ?? r.visitType}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: '#F8F8F8', borderRadius: 8, marginBottom: 8 }}>
+                      <span style={{ fontSize: 13, color: '#666' }}>{formatDate(r.date)} {r.time}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>{VISIT_TYPE_JP[r.visitType] ?? r.visitType}</span>
+                    </div>
+
+                    <div style={{ textAlign: 'right', fontSize: 12.5, color: '#1D9E75', fontWeight: 600, marginBottom: 12 }}>詳細を見る ›</div>
                   </div>
 
                   {/* 동반자 확인 / 추가 */}

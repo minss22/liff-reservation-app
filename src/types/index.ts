@@ -72,6 +72,30 @@ export interface Reservation {
   createdAt: string
 }
 
+// 예약 상세 (예약자/동반자 1인)
+export interface ReservationPerson {
+  name: string
+  birthDate: string | null
+  gender: string
+  visitType: 'first' | 'return'
+  desiredTreatment: string
+  budget: string
+  surgeryHistory: string
+  status: string
+}
+export interface ReservationDetail {
+  ok: boolean
+  reason?: string
+  id?: string
+  branchName?: string
+  date?: string
+  time?: string
+  status?: string
+  createdAt?: string
+  booker?: ReservationPerson
+  companions?: ReservationPerson[]
+}
+
 // 예약 신청 단계 (기획서 화면 1~6 — 지점 선택 없음, 채널로 단일 병원 자동 연결)
 export type ReservationStep =
   | 'login'

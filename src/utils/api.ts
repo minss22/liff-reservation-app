@@ -1,5 +1,5 @@
 import liff from '@line/liff'
-import type { Companion, Reservation } from '../types'
+import type { Companion, Reservation, ReservationDetail } from '../types'
 
 const BASE_URL = (import.meta as any).env.VITE_API_BASE_URL
 
@@ -138,6 +138,10 @@ export const reservationApi = {
   getCompanions: (reservationId: string): Promise<Array<{
     id: string; name: string; visitType: 'first' | 'return'; desiredTreatment: string; status: string
   }>> => get('companions', { reservationId }),
+
+  // 예약 상세 (예약자+동반자 전체 정보)
+  getReservationDetail: (reservationId: string): Promise<ReservationDetail> =>
+    get('reservation-detail', { reservationId, lineUserId: liff.getContext()?.userId ?? '' }),
 
   // 동반자 삭제 (고객·매니저에 알림)
   deleteCompanion: (companionId: string) =>
