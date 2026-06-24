@@ -59,10 +59,6 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // 동반자 확인 모달
-  const [viewTarget, setViewTarget] = useState<Reservation | null>(null)
-  const [viewList, setViewList] = useState<CompanionRow[] | null>(null)
-
   // 동반자 추가 모달
   const [addTarget, setAddTarget] = useState<Reservation | null>(null)
   const [addList, setAddList] = useState<Companion[]>([])
@@ -97,16 +93,6 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
     }
   }
 
-  const openView = async (r: Reservation) => {
-    setViewTarget(r)
-    setViewList(null)
-    try {
-      setViewList(await reservationApi.getCompanions(r.id))
-    } catch {
-      setViewList([])
-    }
-  }
-
   const handleRebook = async (id: string) => {
     if (!(await dialog.confirm({ message: '同じ内容で予約しますか？', okText: 'はい', cancelText: 'いいえ' }))) return
     try {
@@ -115,16 +101,6 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
       dialog.alert('ご予約を受け付けました。\nクリニックの確認後にお知らせします。')
     } catch (e: any) {
       dialog.alert(e?.message || '予約に失敗しました')
-    }
-  }
-
-  const handleDeleteCompanion = async (companionId: string) => {
-    if (!(await dialog.confirm({ message: 'この同行者を削除しますか？', okText: 'はい', cancelText: 'いいえ', danger: true }))) return
-    try {
-      await reservationApi.deleteCompanion(companionId)
-      setViewList(prev => prev ? prev.filter(c => c.id !== companionId) : prev)
-    } catch (e: any) {
-      dialog.alert(e?.message || '削除中にエラーが発生しました。')
     }
   }
 
@@ -170,30 +146,26 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
               const canManage = (r.status === 'pending' || r.status === 'confirmed') && !isPastReservation(r.date, r.time)
               return (
                 <div key={r.id} style={{ background: '#fff', borderRadius: 14, padding: '16px', border: '1px solid #F0F0F0' }}>
-                  <div onClick={() => onOpenDetail(r.id)} style={{ cursor: 'pointer' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                      <div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 3 }}>
-                          {r.desiredTreatment.length > 20 ? r.desiredTreatment.slice(0, 20) + '…' : r.desiredTreatment}
-                        </div>
-                        <div style={{ fontSize: 13, color: '#888' }}>{r.branchName}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 3 }}>
+                        {r.desiredTreatment.length > 20 ? r.desiredTreatment.slice(0, 20) + '…' : r.desiredTreatment}
                       </div>
-                      <span style={{ padding: '4px 10px', borderRadius: 12, background: badge.bg, color: badge.color, fontSize: 12, fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
-                        {formatStatus(r.status)}
-                      </span>
+                      <div style={{ fontSize: 13, color: '#888' }}>{r.branchName}</div>
                     </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: '#F8F8F8', borderRadius: 8, marginBottom: 8 }}>
-                      <span style={{ fontSize: 13, color: '#666' }}>{formatDate(r.date)} {r.time}</span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>{VISIT_TYPE_JP[r.visitType] ?? r.visitType}</span>
-                    </div>
-
-                    <div style={{ textAlign: 'right', fontSize: 12.5, color: '#1D9E75', fontWeight: 600, marginBottom: 12 }}>詳細を見る ›</div>
+                    <span style={{ padding: '4px 10px', borderRadius: 12, background: badge.bg, color: badge.color, fontSize: 12, fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
+                      {formatStatus(r.status)}
+                    </span>
                   </div>
 
-                  {/* 동반자 확인 / 추가 */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: '#F8F8F8', borderRadius: 8, marginBottom: 12 }}>
+                    <span style={{ fontSize: 13, color: '#666' }}>{formatDate(r.date)} {r.time}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>{VISIT_TYPE_JP[r.visitType] ?? r.visitType}</span>
+                  </div>
+
+                  {/* 상세 보기 / 동반자 추가 */}
                   <div style={{ display: 'flex', gap: 8, marginBottom: canManage ? 8 : 0 }}>
-                    <button onClick={() => openView(r)} style={ghostBtn('#555', '#E0E0E0')}>同行者確認</button>
+                    <button onClick={() => onOpenDetail(r.id)} style={ghostBtn('#555', '#E0E0E0')}>詳細を見る</button>
                     {canManage && (
                       <button onClick={() => openAdd(r)} style={ghostBtn('#1D9E75', '#1D9E75')}>＋ 同行者追加</button>
                     )}
@@ -221,49 +193,6 @@ export default function ReservationHistoryPage({ onBack, onNewReservation, onRes
       <div style={{ padding: '16px 16px 32px', background: '#F8F8F8', borderTop: '1px solid #EEEEEE' }}>
         <Button fullWidth onClick={onNewReservation}>新しく予約する</Button>
       </div>
-
-      {/* ── 동반자 확인 모달 ── */}
-      {viewTarget && (
-        <div style={overlayStyle} onClick={() => setViewTarget(null)}>
-          <div style={sheetStyle} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>同行者</h3>
-              <button onClick={() => setViewTarget(null)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer' }}>×</button>
-            </div>
-            {viewList === null ? (
-              <LoadingSpinner message="読み込み中..." />
-            ) : viewList.length === 0 ? (
-              <p style={{ fontSize: 14, color: '#888', textAlign: 'center', padding: '24px 0' }}>同行者はいません</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {viewList.map(c => {
-                  const b = STATUS_BADGE[c.status] ?? STATUS_BADGE.pending
-                  return (
-                    <div key={c.id} style={{ padding: '12px 14px', background: '#F8F8F8', borderRadius: 10, border: '1px solid #EEE' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: '#222' }}>{c.name}</span>
-                        <span style={{ padding: '3px 9px', borderRadius: 10, background: b.bg, color: b.color, fontSize: 11, fontWeight: 600 }}>
-                          {formatStatus(c.status as Reservation['status'])}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: 12.5, color: '#666' }}>
-                        {VISIT_TYPE_JP[c.visitType] ?? c.visitType} ・ {c.desiredTreatment}
-                      </div>
-                      {(c.status === 'pending' || c.status === 'confirmed') && viewTarget && !isPastReservation(viewTarget.date, viewTarget.time) && (
-                        <div style={{ marginTop: 8, textAlign: 'right' }}>
-                          <button onClick={() => handleDeleteCompanion(c.id)} style={{ background: 'none', border: 'none', color: '#E53E3E', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', padding: '2px 4px' }}>
-                            削除
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ── 동반자 추가 모달 ── */}
       {addTarget && (
