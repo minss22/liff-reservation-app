@@ -29,6 +29,7 @@ export default function ConfirmPage({ branch, date, time, consultation, onConfir
         desiredTreatment: consultation.desiredTreatment,
         budget: consultation.budget || undefined,
         surgeryHistory: consultation.surgeryHistory || undefined,
+        memo: consultation.memo || undefined,
         companions: consultation.hasCompanion ? consultation.companions : [],
       })
       onConfirmed(res)
@@ -47,6 +48,7 @@ export default function ConfirmPage({ branch, date, time, consultation, onConfir
     { label: 'ご希望の施術', value: consultation.desiredTreatment },
     ...(consultation.budget ? [{ label: '予算', value: consultation.budget }] : []),
     ...(consultation.surgeryHistory ? [{ label: '施術履歴', value: consultation.surgeryHistory }] : []),
+    ...(consultation.memo ? [{ label: 'ご要望・メモ', value: consultation.memo }] : []),
     {
       label: '同伴者',
       value: consultation.hasCompanion

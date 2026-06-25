@@ -42,6 +42,7 @@ export interface ConsultationData {
   desiredTreatment: string
   budget: string
   surgeryHistory: string
+  memo: string          // 예약 단위 기타 요청사항(임의)
   hasCompanion: boolean
   companions: Companion[]
 }
@@ -55,6 +56,7 @@ export interface ReservationRequest {
   desiredTreatment: string
   budget?: string
   surgeryHistory?: string
+  memo?: string
   hasCompanion: boolean
   companions: Companion[]
 }
@@ -93,6 +95,7 @@ export interface ReservationDetail {
   time?: string
   status?: string
   createdAt?: string
+  memo?: string
   booker?: ReservationPerson
   companions?: ReservationPerson[]
 }

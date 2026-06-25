@@ -72,6 +72,7 @@ export const reservationApi = {
     desiredTreatment: string
     budget?: string
     surgeryHistory?: string
+    memo?: string
     companions: Companion[]
   }): Promise<Reservation> => {
     // 프론트 필드명(desiredTreatment 등) → 백엔드 필드명(treatment_request 등) 매핑
@@ -83,6 +84,7 @@ export const reservationApi = {
       treatmentRequest: data.desiredTreatment,
       budget: data.budget ?? '',
       surgeryHistory: data.surgeryHistory ?? '',
+      memo: data.memo ?? '',
       companions: data.companions.map(c => ({
         name: c.name,
         birthDate: c.birthDate,

@@ -161,6 +161,7 @@ export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initial
   const [desiredTreatment, setDesiredTreatment] = useState(initialData?.desiredTreatment ?? '')
   const [budget, setBudget] = useState(initialData?.budget ?? '')
   const [surgeryHistory, setSurgeryHistory] = useState(initialData?.surgeryHistory ?? '')
+  const [memo, setMemo] = useState(initialData?.memo ?? '')
   const [hasCompanion, setHasCompanion] = useState<boolean | null>(initialData?.hasCompanion ?? null)
   const [companions, setCompanions] = useState<Companion[]>(initialData?.companions ?? [])
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -214,6 +215,7 @@ export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initial
       desiredTreatment: desiredTreatment.trim(),
       budget: budget.trim(),
       surgeryHistory: surgeryHistory.trim(),
+      memo: memo.trim(),
       hasCompanion: hasCompanion!,
       companions: hasCompanion ? companions : [],
     })
@@ -300,6 +302,25 @@ export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initial
             value={surgeryHistory}
             onChange={e => setSurgeryHistory(e.target.value)}
             placeholder="例：3年前に目の整形、来月に別のクリニックで施術予定など"
+            rows={2}
+            style={{
+              padding: '11px 14px', borderRadius: 10,
+              border: '1.5px solid #E0E0E0', fontSize: 14,
+              color: '#111', background: '#FAFAFA',
+              resize: 'none', outline: 'none', fontFamily: 'inherit',
+            }}
+          />
+        </div>
+
+        {/* 기타 요청사항(메모) — 예약 단위, 임의 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label style={{ fontSize: 13, fontWeight: 500, color: '#555' }}>
+            その他ご要望・メモ <span style={{ color: '#999', fontWeight: 400 }}>(任意)</span>
+          </label>
+          <textarea
+            value={memo}
+            onChange={e => setMemo(e.target.value)}
+            placeholder="例：駐車場はありますか？／少し遅れて到着するかもしれません など"
             rows={2}
             style={{
               padding: '11px 14px', borderRadius: 10,

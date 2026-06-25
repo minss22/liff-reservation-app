@@ -96,6 +96,12 @@ export default function ReservationDetailPage({ reservationId, onBack, fromNotif
               </div>
               <div style={{ fontSize: 15, color: '#333' }}>{formatDate(detail.date as string)} {detail.time}</div>
             </div>
+            {detail.memo && (
+              <div style={{ background: '#fff', borderRadius: 12, padding: '14px 16px', border: '1px solid #F0F0F0' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 4 }}>ご要望・メモ</div>
+                <div style={{ fontSize: 14, color: '#333', whiteSpace: 'pre-wrap' }}>{detail.memo}</div>
+              </div>
+            )}
             {detail.booker && <Person label="ご予約者" p={detail.booker} />}
             {(detail.companions ?? []).map((c, i) => (
               <Person key={c.id ?? i} label={`同行者 ${i + 1}`} p={c}
