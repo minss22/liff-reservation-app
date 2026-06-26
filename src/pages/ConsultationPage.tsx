@@ -125,7 +125,7 @@ export function CompanionForm({ companion, index, errors, onChange, onRemove }: 
         <input
           value={companion.budget}
           onChange={ev => onChange({ ...companion, budget: ev.target.value })}
-          placeholder="例：5万円〜10万円"
+          placeholder="例：50万ウォン〜100万ウォン"
           style={{
             padding: '11px 14px', borderRadius: 10,
             border: '1.5px solid #E0E0E0', fontSize: 14,
@@ -284,7 +284,7 @@ export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initial
           <input
             value={budget}
             onChange={e => setBudget(e.target.value)}
-            placeholder="例：5万円〜10万円"
+            placeholder="例：50万ウォン〜100万ウォン"
             style={{
               padding: '11px 14px', borderRadius: 10,
               border: '1.5px solid #E0E0E0', fontSize: 14,
@@ -320,7 +320,7 @@ export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initial
           <textarea
             value={memo}
             onChange={e => setMemo(e.target.value)}
-            placeholder="例：駐車場はありますか？／少し遅れて到着するかもしれません など"
+            placeholder="ご要望があればご記入ください"
             rows={2}
             style={{
               padding: '11px 14px', borderRadius: 10,
