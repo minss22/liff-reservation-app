@@ -93,6 +93,15 @@ export default function App() {
   const [detailTarget, setDetailTarget] = useState<string | null>(null)
   const [historyKey, setHistoryKey] = useState(0)
 
+  const startNewReservation = () => {
+    setSelectedDate('')
+    setSelectedTime('')
+    setConsultationData(null)
+    setCompletedReservation(null)
+    setShowHistory(false)
+    setStep('select-datetime')
+  }
+
   useEffect(() => {
     if (!isReady || !isLoggedIn) return
     setIsCheckingProfile(true)
@@ -242,7 +251,7 @@ export default function App() {
       <ReservationHistoryPage
         key={historyKey}
         onBack={() => setShowHistory(false)}
-        onNewReservation={() => { setShowHistory(false); setStep('select-datetime') }}
+        onNewReservation={startNewReservation}
         onReschedule={(r) => setRescheduleTarget(r)}
         onOpenDetail={(id) => setDetailTarget(id)}
       />

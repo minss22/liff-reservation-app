@@ -306,7 +306,7 @@ export default function ConsultationPage({
                 onChange={e => toggleReturnVisitFixed(e.target.checked)}
                 style={{ width: 16, height: 16, accentColor: '#1D9E75' }}
               />
-              재진으로 고정할까요?
+              次回から再診で固定しますか？
             </label>
           )}
           {errors.visitType && <span style={{ fontSize: 12, color: '#E53E3E' }}>{errors.visitType}</span>}
