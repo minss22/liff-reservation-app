@@ -81,6 +81,7 @@ export default function App() {
   const [selectedTime, setSelectedTime] = useState<string>('')
   const [consultationData, setConsultationData] = useState<ConsultationData | null>(null)
   const [completedReservation, setCompletedReservation] = useState<Reservation | null>(null)
+  const [hasPreviousReservations, setHasPreviousReservations] = useState(false)
 
   // 마이페이지 표시 여부 + 프로필 편집 여부
   const [showMyPage, setShowMyPage] = useState(false)
@@ -104,8 +105,12 @@ export default function App() {
         console.error('getBranch 실패:', e)
         setBranch({ id: '', branchId: BRANCH_ID, name: '', address: '' })
       })
-    customerApi.getProfile()
-      .then((profile: any) => {
+    Promise.all([
+      customerApi.getProfile().catch(() => null),
+      reservationApi.getMyReservations().catch(() => [] as Reservation[]),
+    ])
+      .then(([profile, reservations]: [any, Reservation[]]) => {
+        setHasPreviousReservations(reservations.length > 0)
         if (profile) {
           setUserProfile(profile)
           setStep('select-datetime')   // 프로필 있으면 바로 날짜·시간 선택
@@ -113,7 +118,6 @@ export default function App() {
           setStep('profile')           // 첫 방문: 기본 정보 입력
         }
       })
-      .catch(() => setStep('profile'))
       .finally(() => setIsCheckingProfile(false))
   }, [isReady, isLoggedIn])
 
@@ -307,6 +311,8 @@ export default function App() {
         onBack={() => setStep('select-datetime')}
         onOpenMyPage={openMyPage}
         initialData={consultationData}
+        hasPreviousReservations={hasPreviousReservations}
+        lineUserId={lineUserId}
       />
     )
   }

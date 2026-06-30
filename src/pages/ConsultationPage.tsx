@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { TopBar, StepIndicator, Button, Input } from '../components/ui'
 import type { Companion, ConsultationData } from '../types'
 
@@ -7,6 +7,8 @@ interface ConsultationPageProps {
   onBack: () => void
   onOpenMyPage: () => void
   initialData?: ConsultationData | null
+  hasPreviousReservations?: boolean
+  lineUserId?: string | null
 }
 
 export const ROMAJI_REGEX = /^[A-Za-z\s\-'.]+$/
@@ -156,8 +158,24 @@ export function CompanionForm({ companion, index, errors, onChange, onRemove }: 
   )
 }
 
-export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initialData }: ConsultationPageProps) {
-  const [visitType, setVisitType] = useState<'first' | 'return' | null>(initialData?.visitType ?? null)
+export default function ConsultationPage({
+  onNext,
+  onBack,
+  onOpenMyPage,
+  initialData,
+  hasPreviousReservations = false,
+  lineUserId,
+}: ConsultationPageProps) {
+  const returnVisitStorageKey = lineUserId ? `clinicbridge:return-visit-fixed:${lineUserId}` : ''
+  const readReturnVisitFixed = () => {
+    if (!hasPreviousReservations || !returnVisitStorageKey) return false
+    return window.localStorage.getItem(returnVisitStorageKey) === 'true'
+  }
+
+  const [returnVisitFixed, setReturnVisitFixed] = useState(readReturnVisitFixed)
+  const [visitType, setVisitVisitType] = useState<'first' | 'return' | null>(() =>
+    initialData?.visitType ?? (readReturnVisitFixed() ? 'return' : null)
+  )
   const [desiredTreatment, setDesiredTreatment] = useState(initialData?.desiredTreatment ?? '')
   const [budget, setBudget] = useState(initialData?.budget ?? '')
   const [surgeryHistory, setSurgeryHistory] = useState(initialData?.surgeryHistory ?? '')
@@ -165,6 +183,33 @@ export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initial
   const [hasCompanion, setHasCompanion] = useState<boolean | null>(initialData?.hasCompanion ?? null)
   const [companions, setCompanions] = useState<Companion[]>(initialData?.companions ?? [])
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    const fixed = readReturnVisitFixed()
+    setReturnVisitFixed(fixed)
+    if (fixed && !initialData?.visitType) setVisitVisitType('return')
+  }, [hasPreviousReservations, returnVisitStorageKey])
+
+  const setVisitType = (value: 'first' | 'return') => {
+    setVisitVisitType(value)
+    if (value === 'first' && returnVisitFixed) {
+      setReturnVisitFixed(false)
+      if (returnVisitStorageKey) window.localStorage.removeItem(returnVisitStorageKey)
+    }
+    if (errors.visitType) setErrors(e => ({ ...e, visitType: '' }))
+  }
+
+  const toggleReturnVisitFixed = (checked: boolean) => {
+    setReturnVisitFixed(checked)
+    if (returnVisitStorageKey) {
+      if (checked) window.localStorage.setItem(returnVisitStorageKey, 'true')
+      else window.localStorage.removeItem(returnVisitStorageKey)
+    }
+    if (checked) {
+      setVisitVisitType('return')
+      if (errors.visitType) setErrors(e => ({ ...e, visitType: '' }))
+    }
+  }
 
   const addCompanion = () => {
     setCompanions(prev => [...prev, emptyCompanion()])
@@ -247,12 +292,23 @@ export default function ConsultationPage({ onNext, onBack, onOpenMyPage, initial
           </label>
           <div style={{ display: 'flex', gap: 10 }}>
             {(['first', 'return'] as const).map(v => (
-              <button key={v} onClick={() => { setVisitType(v); if (errors.visitType) setErrors(e => ({ ...e, visitType: '' })) }}
+              <button key={v} onClick={() => setVisitType(v)}
                 style={selectStyle(visitType === v)}>
                 {v === 'first' ? '初診' : '再診'}
               </button>
             ))}
           </div>
+          {hasPreviousReservations && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#555', cursor: 'pointer', paddingTop: 2 }}>
+              <input
+                type="checkbox"
+                checked={returnVisitFixed}
+                onChange={e => toggleReturnVisitFixed(e.target.checked)}
+                style={{ width: 16, height: 16, accentColor: '#1D9E75' }}
+              />
+              재진으로 고정할까요?
+            </label>
+          )}
           {errors.visitType && <span style={{ fontSize: 12, color: '#E53E3E' }}>{errors.visitType}</span>}
         </div>
 
